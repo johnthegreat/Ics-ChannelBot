@@ -47,12 +47,6 @@ public class CommunicationBuffer {
 		int maxheight = getUser().getHeight()-2;
 		String[] arr = getText().split("\\\\n");
 		int size = (arr.length / maxheight);
-		/*for(String str : arr) {
-			// You can only send 1024 characters in a message, server limit
-			if (str.length() > 1024) {
-				size++;
-			}
-		}*/
 		if ((arr.length/(double)maxheight) % 1 != 0) {
 			size++;
 		}
@@ -75,10 +69,6 @@ public class CommunicationBuffer {
 			}
 			
 			String chunk = b.toString();
-			/*while (chunk.length() > 1024) {
-				int pos = chunk.indexOf(" ", 1024);
-				chunk.substring
-			}*/
 			chunks[i] = chunk;
 		}
 	}

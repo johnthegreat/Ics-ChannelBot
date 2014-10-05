@@ -124,7 +124,16 @@ public class ServerConnection {
 		}
 		communicationBuffer.setText(message);
 		communicationBuffer.parse();
-		userCommunicationService.send(user,communicationBuffer.readNextChunk(),tellMethod);
+		String chunk = communicationBuffer.readNextChunk();
+		while (chunk.length() > 1020) {
+			int pos = chunk.substring(0,1020).lastIndexOf("\\n");
+			if (pos != -1) {
+				userCommunicationService.send(user,chunk.substring(0,pos),tellMethod);
+				chunk = chunk.substring(pos+2);
+			}
+		}
+		
+		userCommunicationService.send(user,chunk,tellMethod);
 	}
 	
 	public void qtell(String username, String message) {
