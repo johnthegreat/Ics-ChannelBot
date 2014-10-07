@@ -880,4 +880,8 @@ public class ChannelBot {
 	public void setDatabaseConnection(SQLiteConnection databaseConnection) {
 		this.databaseConnection = databaseConnection;
 	}
+
+	public boolean isChannelNumberAvailable(int channelNumber) {
+		return !Channels.containsKey(channelNumber);
+	}
 }

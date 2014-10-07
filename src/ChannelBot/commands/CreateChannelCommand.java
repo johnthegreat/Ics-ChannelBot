@@ -46,6 +46,14 @@ public class CreateChannelCommand extends Command {
 		}
 		
 		Channel channel = ChannelBot.getInstance().getChannelFactory().create(getUsername(), channelName, channelPassword);
+		if (getUsername().equals(ChannelBot.programmer) && getChannelNumber() > 0) {
+			if (ChannelBot.getInstance().isChannelNumberAvailable(getChannelNumber())) {
+				channel.setID(getChannelNumber());
+			} else {
+				ChannelBot.getInstance().getServerConnection().qtell(getUsername(), String.format("%s: That channel number is in use, and cannot be created.",ChannelBot.getUsername()));
+				return;
+			}
+		}
 		ChannelBot.getInstance().addChannel(channel);
 		
 		StringBuilder qt = new StringBuilder(ChannelBot.getUsername() + ": Channel #" + channel.getID() + " has been created");
