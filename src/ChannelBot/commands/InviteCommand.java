@@ -35,6 +35,8 @@ public class InviteCommand extends Command {
 			if (channel != null) {
 				ChannelBot.getInstance().getServerConnection().write(String.format("tell %s %s has invited you to join channel #%s! " +
 						"To join, use \"tell ChannelBot join %s\".",usernameToInvite,getUsername(),channel.getID(),channel.getID()));
+				ChannelBot.getInstance().getServerConnection().qtell(getUsername(),
+						String.format("%s: %s has been invited to channel #%s.", ChannelBot.getUsername(),usernameToInvite, channel.getID()));
 			} else {
 				ChannelBot.getInstance().getServerConnection().qtell(getUsername(), ChannelBot.getUsername() + ": Could not find that channel number. Please try again.");
 			}
