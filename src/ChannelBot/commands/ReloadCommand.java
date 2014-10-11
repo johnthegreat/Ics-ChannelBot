@@ -29,7 +29,7 @@ public class ReloadCommand extends Command {
 			bot.getServerConnection().write("logout");
 			bot.getServerConnection().disconnect();
 			bot.loadData();
-			bot.getServerConnection().connect();
+			bot.getServerConnection().connect(bot.getProperties().getProperty("server.address"),Integer.parseInt(bot.getProperties().getProperty("server.port")));
 		} else {
 			bot.getServerConnection().qtell(getUsername(), ChannelBot.getUsername() + ": Insufficient privileges. You must be the programmer to issue this command.");
 		}
