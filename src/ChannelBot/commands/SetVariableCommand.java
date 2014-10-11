@@ -15,6 +15,7 @@
  */
 package ChannelBot.commands;
 
+import java.sql.SQLException;
 import java.util.TimeZone;
 
 import ChannelBot.ChannelBot;
@@ -97,6 +98,11 @@ public class SetVariableCommand extends Command {
 				newValue = user.isDisableToldToString() ? "Yes" : "No";
 			}
 			
+			try {
+				ChannelBot.getInstance().getPersistanceProvider().saveUserToDb(user);
+			} catch (SQLException e) {
+				ChannelBot.logError(e);
+			}
 			ChannelBot.getInstance().getServerConnection().qtell(getUsername(),
 					ChannelBot.getUsername() + String.format(": Your variable %s has been set to %s.",variableName,newValue));
 			return;
@@ -107,6 +113,11 @@ public class SetVariableCommand extends Command {
 			TimeZone tz = TimeZoneUtils.getTimeZone(value);
 			if (tz != null) {
 				user.setTimeZone(tz);
+				try {
+					ChannelBot.getInstance().getPersistanceProvider().saveUserToDb(user);
+				} catch (SQLException e) {
+					ChannelBot.logError(e);
+				}
 				ChannelBot.getInstance().getServerConnection().qtell(user.getName(),
 						ChannelBot.getUsername() + String.format(": Your variable %s has been set to %s.","TimeZone",TimeZoneUtils.getAbbreviation(tz)));
 			} else if (tz == null) {
@@ -118,7 +129,18 @@ public class SetVariableCommand extends Command {
 		
 		if (StringUtils.startsWithIgnoreCase(variable, "height")) {
 			if (StringUtils.isNumeric(value)) {
-				user.setHeight(Integer.parseInt(value));
+				int height = Integer.parseInt(value);
+				if (height < 5 || height > 240) {
+					ChannelBot.getInstance().getServerConnection().qtell(user.getName(), ChannelBot.getUsername() +
+							": Invalid value for variable Height. Please select a value between 5 and 240.");
+					return;
+				}
+				user.setHeight(height);
+				try {
+					ChannelBot.getInstance().getPersistanceProvider().saveUserToDb(user);
+				} catch (SQLException e) {
+					ChannelBot.logError(e);
+				}
 				ChannelBot.getInstance().getServerConnection().qtell(user.getName(),
 						ChannelBot.getUsername() + String.format(": Your variable %s has been set to %s.","Height",user.getHeight()));
 			} else {

@@ -17,6 +17,7 @@ package ChannelBot.commands;
 
 import ChannelBot.Channel;
 import ChannelBot.ChannelBot;
+import ChannelBot.ChannelChangedEvent;
 import ChannelBot.Command;
 
 public class CreateChannelCommand extends Command {
@@ -55,6 +56,7 @@ public class CreateChannelCommand extends Command {
 			}
 		}
 		ChannelBot.getInstance().addChannel(channel);
+		channel.fireChangedEvent(new ChannelChangedEvent());
 		
 		StringBuilder qt = new StringBuilder(ChannelBot.getUsername() + ": Channel #" + channel.getID() + " has been created");
 		qt.append(channelPassword.equals("") ? "." : " with password \"" + channelPassword + "\".");

@@ -21,13 +21,14 @@ public class ChannelFactory {
 	}
 	
 	public Channel create(String moderator,String channelName,String channelPassword) {
-		Channel channel = new Channel();
+		final Channel channel = new Channel();
 		channel.addModerator(moderator);
 		channel.setHeadModerator(moderator);
 		channel.setID(ChannelBot.getInstance().nextAvailableChannelNumber());
 		channel.setName(channelName);
 		channel.addPassword(moderator,channelPassword);
 		channel.getMembers().addAll(channel.getModeratorsAsList());
+		channel.addChannelChangedEventListener(Channel.channelChangedEventListener);
 		return channel;
 	}
 }

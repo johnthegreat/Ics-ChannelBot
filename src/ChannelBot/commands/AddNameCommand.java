@@ -28,7 +28,7 @@ public class AddNameCommand extends Command {
 		
 		Channel ch = ChannelBot.getInstance().getChannel(getChannelNumber());
 		if (ch != null) {
-			if (ch.hasModerator(getUsername()) || ChannelBot.programmer.equals(getUsername())) {
+			if (ch.isModerator(getUsername()) || ChannelBot.programmer.equals(getUsername())) {
 				int maximumChannelNameLength = Integer.parseInt(ChannelBot.getInstance().getProperties().getProperty("config.channels.maxNameLength"));
 				if (newName.length() <= maximumChannelNameLength) {
 					ch.setName(newName);

@@ -16,6 +16,7 @@
 package ChannelBot;
 
 import java.io.FileWriter;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -26,6 +27,22 @@ import java.util.TimeZone;
 public class Channel {
 	private static String[] filteredWords = new String[0];
 	private static String filter = "#%&@#%&@#%&@";
+	
+	public static ChannelChangedEventListener channelChangedEventListener = new ChannelChangedEventListener() {
+		@Override
+		public void run() {
+			try {
+				ChannelBot.getInstance().getPersistanceProvider().saveChannelToDb(getChannel());
+				List<String> channelMembers = getChannel().getMembers();
+				for(String username : channelMembers) {
+					User user = ChannelBot.getInstance().getUser(username);
+					ChannelBot.getInstance().getPersistanceProvider().addChannelUserToDb(getChannel(), user);
+				}
+			} catch (SQLException e) {
+				ChannelBot.logError(e);
+			}
+		}
+	};
 
 	public static String[] getFilteredWords() {
 		return filteredWords;
@@ -60,6 +77,7 @@ public class Channel {
 	private String password;
 	private LRUTimerCache<ChannelTell> history;
 	private int historyTime;
+	private List<ChannelChangedEventListener> channelChangedEventListeners;
 
 	public Channel() {
 		setMembers(new ArrayList<String>());
@@ -68,9 +86,10 @@ public class Channel {
 		historyTime *= Integer.parseInt(ChannelBot.getInstance()
 				.getProperties().getProperty("config.channels.history"));
 		history = new LRUTimerCache<ChannelTell>(historyTime);
+		channelChangedEventListeners = new ArrayList<ChannelChangedEventListener>();
 	}
 
-	public boolean hasModerator(String username) {
+	public boolean isModerator(String username) {
 		return Collections.binarySearch(moderators, username) >= 0;
 	}
 
@@ -78,10 +97,6 @@ public class Channel {
 		if (username == null || headModerator == null)
 			return false;
 		return headModerator.equals(username);
-	}
-
-	public boolean isModerator(String username) {
-		return moderators.contains(username);
 	}
 
 	public void addModerator(String moderator) {
@@ -94,11 +109,13 @@ public class Channel {
 			tell("", moderator + " has become a channel moderator.");
 		}*/
 		Collections.sort(moderators, String.CASE_INSENSITIVE_ORDER);
+		fireChangedEvent(new ChannelChangedEvent());
 	}
 
 	public void removeModerator(String moderator) {
 		moderators.remove(moderator);
 		//tell("", moderator + " is no longer a channel moderator.");
+		fireChangedEvent(new ChannelChangedEvent());
 	}
 
 	public boolean addPassword(String moderator, String pass) {
@@ -109,12 +126,6 @@ public class Channel {
 
 		if (pass.length() <= ChannelBot.MAX_PASSWORD_LENGTH) {
 			setPassword(pass);
-			try {
-				ChannelBot.getInstance().getPersistanceProvider().saveChannelToDb(this);
-			} catch (Exception e) {
-				System.err.println("There was a problem saving the change.");
-				ChannelBot.logError(e);
-			}
 			return true;
 		} else {
 			return false;
@@ -160,6 +171,7 @@ public class Channel {
 		if (permUser != null) {
 			permUser.getInChannels().add(getID());
 		}
+		fireChangedEvent(new ChannelChangedEvent());
 		return true;
 	}
 
@@ -261,10 +273,12 @@ public class Channel {
 
 	public void setName(String name) {
 		this.name = name;
+		fireChangedEvent(new ChannelChangedEvent());
 	}
 
 	public void setPassword(String password) {
 		this.password = password;
+		fireChangedEvent(new ChannelChangedEvent());
 	}
 
 	/**
@@ -396,5 +410,21 @@ public class Channel {
 			newTime = max;
 		}
 		historyTime = newTime;
+	}
+	
+	public void addChannelChangedEventListener(ChannelChangedEventListener listener) {
+		if (listener != null) {
+			channelChangedEventListeners.add(listener);
+		}
+	}
+	
+	public void fireChangedEvent(ChannelChangedEvent event) {
+		for(ChannelChangedEventListener listener : channelChangedEventListeners) {
+			if (listener != null) {
+				listener.setChannel(this);
+				listener.setEvent(event);
+				listener.run();
+			}
+		}
 	}
 }

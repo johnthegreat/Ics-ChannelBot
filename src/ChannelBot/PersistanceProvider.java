@@ -140,6 +140,7 @@ public class PersistanceProvider {
 		channel.setPassword(resultSet.getString("password"));
 		channel.setLastTellTime(resultSet.getLong("lastTellTime"));
 		populateChannelUsersFromDb(channel);
+		channel.addChannelChangedEventListener(Channel.channelChangedEventListener);
 		return channel;
 	}
 	
