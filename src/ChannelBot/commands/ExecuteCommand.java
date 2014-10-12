@@ -28,8 +28,12 @@ public class ExecuteCommand extends Command {
 			System.out.println("The execute command has been issued.");
 			
 			String args = getArguments();
-			bot.getServerConnection().write(args);
-			bot.getServerConnection().qtell(getUsername(), ChannelBot.getUsername() + ": Command has been successfully executed.");
+			if (!args.trim().equals("")) {
+				bot.getServerConnection().write(args);
+				bot.getServerConnection().qtell(getUsername(), ChannelBot.getUsername() + ": Command has been successfully executed.");
+			} else {
+				bot.getServerConnection().qtell(getUsername(), ChannelBot.getUsername() + ": Please provide arguments for that command.");
+			}
 		} else {
 			bot.getServerConnection().qtell(getUsername(), ChannelBot.getUsername() + ": Insufficient privileges. You must be the programmer to issue this command.");
 		}

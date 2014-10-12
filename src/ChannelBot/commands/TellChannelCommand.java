@@ -18,6 +18,7 @@ package ChannelBot.commands;
 import ChannelBot.Channel;
 import ChannelBot.ChannelBot;
 import ChannelBot.Command;
+import ChannelBot.Utils;
 
 public class TellChannelCommand extends Command {
 
@@ -27,12 +28,16 @@ public class TellChannelCommand extends Command {
 		if (channel != null) {
 			String args = getArguments();
 			if (args != null && !args.trim().equals("")) {
-				channel.tell(getUsername(), args);
+				if (Utils.listContainsIgnoreCase(channel.getMembers(), getUsername()) || getUsername().equals(ChannelBot.programmer)) {
+					channel.tell(getUsername(), args);
+				} else {
+					ChannelBot.getInstance().getServerConnection().qtell(getUsername(), ChannelBot.getUsername() + ": You must be in the channel to send that channel a tell.");
+				}
 			} else {
 				ChannelBot.getInstance().getServerConnection().qtell(getUsername(), ChannelBot.getUsername() + ": Please provide arguments for that command.");
 			}
 		} else {
-			ChannelBot.getInstance().getServerConnection().qtell(getUsername(), "Could not find that channel number. Please try again.");
+			ChannelBot.getInstance().getServerConnection().qtell(getUsername(), ChannelBot.getUsername() + ": Could not find that channel number. Please try again.");
 		}
 	}
 }
