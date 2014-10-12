@@ -36,7 +36,11 @@ public class Channel {
 				List<String> channelMembers = getChannel().getMembers();
 				for(String username : channelMembers) {
 					User user = ChannelBot.getInstance().getUser(username);
-					ChannelBot.getInstance().getPersistanceProvider().addChannelUserToDb(getChannel(), user);
+					if (user != null) {
+						ChannelBot.getInstance().getPersistanceProvider().addChannelUserToDb(getChannel(), user);
+					} else {
+						System.err.println(String.format("User could not be found (so was not persisted): %s",username));
+					}
 				}
 			} catch (SQLException e) {
 				ChannelBot.logError(e);

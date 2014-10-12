@@ -734,9 +734,14 @@ public class ChannelBot {
 		user.setEcho(true);
 		user.setOnline(true);
 		user.setHeight(20);
-
+		
 		getUserList().add(user);
-		userMap.put	(username.toLowerCase(), user);
+		userMap.put(username.toLowerCase(), user);
+		try {
+			this.getPersistanceProvider().saveUserToDb(user);
+		} catch (SQLException e) {
+			ChannelBot.logError(e);
+		}
 		allUsernamesCacheStale = true;
 		return true;
 	}
