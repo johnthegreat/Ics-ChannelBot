@@ -25,30 +25,43 @@ public class InviteCommand extends Command {
 
 	@Override
 	public void execute() {
-		String usernameToInvite = getArguments();
-		if (usernameToInvite != null && !usernameToInvite.equals("")) {
-			if (!PatternService.getInstance().get("^([a-zA-Z]{3,17})$").matcher(usernameToInvite).matches()) {
-				ChannelBot.getInstance().getServerConnection().qtell(getUsername(),
-						ChannelBot.getUsername() + ": Please provide a valid username.");
-				return;
-			}
-			
-			User user = ChannelBot.getInstance().getUser(usernameToInvite);
-			if (user != null) {
-				usernameToInvite = user.getName();
-			}
-			
-			Channel channel = ChannelBot.getInstance().getChannel(getChannelNumber());
-			if (channel != null) {
-				ChannelBot.getInstance().getServerConnection().write(String.format("tell %s %s has invited you to join channel #%s! " +
-						"To join, use \"tell ChannelBot join %s\".",usernameToInvite,getUsername(),channel.getID(),channel.getID()));
-				ChannelBot.getInstance().getServerConnection().qtell(getUsername(),
-						String.format("%s: %s has been invited to channel #%s.", ChannelBot.getUsername(),usernameToInvite, channel.getID()));
+		if (getUsername().equals(ChannelBot.programmer)) {
+			String usernameToInvite = getArguments();
+			if (usernameToInvite != null && !usernameToInvite.equals("")) {
+				if (!PatternService.getInstance().get("^([a-zA-Z]{3,17})$").matcher(usernameToInvite).matches()) {
+					ChannelBot.getInstance().getServerConnection().qtell(getUsername(),
+							ChannelBot.getUsername() + ": Please provide a valid username.");
+					return;
+				}
+				
+				User user = ChannelBot.getInstance().getUser(usernameToInvite);
+				if (user != null) {
+					usernameToInvite = user.getName();
+				}
+				
+				if (getUsername().equals(usernameToInvite)) {
+					ChannelBot.getInstance().getServerConnection().qtell(getUsername(),
+						ChannelBot.getUsername() + ": You cannot invite yourself to a channel.");
+					return;
+				}
+				
+				Channel channel = ChannelBot.getInstance().getChannel(getChannelNumber());
+				if (channel != null) {
+					ChannelBot.getInstance().getServerConnection().write(String.format("tell %s %s has invited you to join channel #%s! " +
+							"To join, use \"tell ChannelBot join %s\".",usernameToInvite,getUsername(),channel.getID(),channel.getID()));
+					ChannelBot.getInstance().getServerConnection().qtell(getUsername(),
+							String.format("%s: %s has been invited to channel #%s.", ChannelBot.getUsername(),usernameToInvite, channel.getID()));
+				} else {
+					ChannelBot.getInstance().getServerConnection().qtell(getUsername(),
+							ChannelBot.getUsername() + ": Could not find that channel number. Please try again.");
+				}
 			} else {
-				ChannelBot.getInstance().getServerConnection().qtell(getUsername(), ChannelBot.getUsername() + ": Could not find that channel number. Please try again.");
+				ChannelBot.getInstance().getServerConnection().qtell(getUsername(),
+						ChannelBot.getUsername() + ": You must specify a username that you want to invite.");
 			}
 		} else {
-			ChannelBot.getInstance().getServerConnection().qtell(getUsername(), ChannelBot.getUsername() + ": You must specify a username that you want to invite.");
+			ChannelBot.getInstance().getServerConnection().qtell(getUsername(),
+					ChannelBot.getUsername() + ": Insufficient privileges. You must be the programmer to issue this command.");
 		}
 	}
 
