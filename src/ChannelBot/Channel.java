@@ -197,6 +197,11 @@ public class Channel {
 		User user = ChannelBot.getInstance().getUser(username);
 		if (user != null && user.getInChannels().contains(getID())) {
 			user.getInChannels().remove(Integer.valueOf(getID()));
+			try {
+				ChannelBot.getInstance().getPersistanceProvider().removeChannelUserFromDb(this, user);
+			} catch (SQLException e) {
+				ChannelBot.logError(e);
+			}
 		}
 		tell("", username + " has been removed from the channel by " + moderator + ".");
 		ChannelBot.getInstance().getServerConnection().qtell(username,
@@ -231,6 +236,12 @@ public class Channel {
 		if (permUser != null) {
 			int pos = permUser.getInChannels().indexOf(getID());
 			permUser.getInChannels().remove(pos);
+			
+			try {
+				ChannelBot.getInstance().getPersistanceProvider().removeChannelUserFromDb(this, permUser);
+			} catch (SQLException e) {
+				ChannelBot.logError(e);
+			}
 		}
 		if (!silent) {
 			tell("", username + " has left channel #" + getID() + ".");
