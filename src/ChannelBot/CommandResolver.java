@@ -153,15 +153,15 @@ public class CommandResolver {
 			return new ExecuteCommand();
 		}
 		
-		if (patternService.get("\\+(?:\\w|ban)").matcher(commandName).matches()) {
+		if (patternService.get("\\+(?:[a-zA-Z]|ban)").matcher(commandName).matches()) {
 			return new AddUserToListCommand();
 		}
 		
-		if (patternService.get("\\-(?:\\w|ban)").matcher(commandName).matches()) {
+		if (patternService.get("\\-(?:[a-zA-Z]|ban)").matcher(commandName).matches()) {
 			return new RemoveUserFromListCommand();
 		}
 		
-		if (patternService.get("=(?:\\w|ban)").matcher(commandName).matches()) {
+		if (patternService.get("=(?:[a-zA-Z]|ban)").matcher(commandName).matches()) {
 			return new ViewUserListCommand();
 		}
 		

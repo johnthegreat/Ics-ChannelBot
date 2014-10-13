@@ -110,7 +110,7 @@ public class ChannelBot {
 		PatternService patternService = PatternService.getInstance();
 		
 		if (line.startsWith("[")) {
-			Matcher m = patternService.get("\\[(\\w{3,17})(?: \\(.*\\))? has ((?:dis)?connected).\\]").matcher(line);
+			Matcher m = patternService.get("\\[([a-zA-Z]{3,17})(?: \\(.*\\))? has ((?:dis)?connected).\\]").matcher(line);
 			if (m.matches()) {
 				parsePIN(m);
 				output = false;
@@ -141,7 +141,7 @@ public class ChannelBot {
 		// johnthegreat(SR)(50): botchvinik tells you: hehe kewl
 		boolean isProbablyTell = line.contains(" tells you: ");
 		if (isProbablyTell) {
-			Pattern tellPattern = patternService.get("^(\\w{3,17})(\\(.*\\))? tells you: (.*)$");
+			Pattern tellPattern = patternService.get("^([a-zA-Z]{3,17})(\\(.*\\))? tells you: (.*)$");
 			Matcher tellMatcher = tellPattern.matcher(line);
 			if (tellMatcher.matches()) {
 				// We now know that this is a personal tell.
@@ -180,7 +180,7 @@ public class ChannelBot {
 					return false;
 				}*/
 				
-				Pattern messagePattern = patternService.get("^((?:\\+|\\-|=)?\\w+(?:-\\w+)?)(?: (.*))?$");
+				Pattern messagePattern = patternService.get("^((?:\\+|\\-|=)?[a-zA-Z]+(?:-[a-zA-Z]+)?)(?: (.*))?$");
 				Matcher messageMatcher = messagePattern.matcher(message);
 				if (messageMatcher.matches()) {
 					System.out.println(debugRegexMatch(messageMatcher));
@@ -221,7 +221,7 @@ public class ChannelBot {
 	 */
 	public static void parseEndQTELL(String in) {
 		//System.out.println("in = \"" + in + "\"");
-		Pattern p = Pattern.compile("\\*qtell (\\w{3,17}) (0|1)\\*");
+		Pattern p = Pattern.compile("\\*qtell ([a-zA-Z]{3,17}) (0|1)\\*");
 		Matcher m = p.matcher(in);
 		if (m.matches()) {
 			String username = m.group(1);

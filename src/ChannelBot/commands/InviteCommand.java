@@ -18,6 +18,7 @@ package ChannelBot.commands;
 import ChannelBot.Channel;
 import ChannelBot.ChannelBot;
 import ChannelBot.Command;
+import ChannelBot.PatternService;
 import ChannelBot.User;
 
 public class InviteCommand extends Command {
@@ -26,6 +27,12 @@ public class InviteCommand extends Command {
 	public void execute() {
 		String usernameToInvite = getArguments();
 		if (usernameToInvite != null && !usernameToInvite.equals("")) {
+			if (!PatternService.getInstance().get("^([a-zA-Z]{3,17})$").matcher(usernameToInvite).matches()) {
+				ChannelBot.getInstance().getServerConnection().qtell(getUsername(),
+						ChannelBot.getUsername() + ": Please provide a valid username.");
+				return;
+			}
+			
 			User user = ChannelBot.getInstance().getUser(usernameToInvite);
 			if (user != null) {
 				usernameToInvite = user.getName();
