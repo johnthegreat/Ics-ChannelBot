@@ -1,6 +1,6 @@
 /**
  *     ChannelBot is a program used to provide additional channels on ICS servers, such as FICS and BICS.
- *     Copyright (C) 2014 John Nahlen
+ *     Copyright (C) 2014-2020 John Nahlen
  *     
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -13,14 +13,15 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package ChannelBot;
+package ChannelBot.persist;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-public class SQLiteConnection {
+
+public class SQLiteConnection implements DatabaseConnection {
 	
 	static {
 		try {
@@ -36,25 +37,35 @@ public class SQLiteConnection {
 		
 	}
 	
-	public Connection connect(String databaseFilePath) {
-		Connection c = null;
-		try {
-			c = DriverManager.getConnection(String.format("jdbc:sqlite:%s",databaseFilePath));
-			return c;
-		} catch (SQLException e) {
-			e.printStackTrace(System.err);
-			return null;
-		}
+	/* (non-Javadoc)
+	 * @see ChannelBot.DatabaseConnection#connect(java.lang.String)
+	 */
+	@Override
+	public Connection connect(String databaseFilePath) throws Exception {
+		Connection c = DriverManager.getConnection(String.format("jdbc:sqlite:%s",databaseFilePath));
+		return c;
 	}
 
+	/* (non-Javadoc)
+	 * @see ChannelBot.DatabaseConnection#getConnection()
+	 */
+	@Override
 	public Connection getConnection() {
 		return connection;
 	}
 
+	/* (non-Javadoc)
+	 * @see ChannelBot.DatabaseConnection#setConnection(java.sql.Connection)
+	 */
+	@Override
 	public void setConnection(Connection connection) {
 		this.connection = connection;
 	}
 	
+	/* (non-Javadoc)
+	 * @see ChannelBot.DatabaseConnection#execute(java.lang.String)
+	 */
+	@Override
 	public Statement execute(String query) throws SQLException {
 		Statement s = connection.createStatement();
 		System.out.println("Executed: " + query);

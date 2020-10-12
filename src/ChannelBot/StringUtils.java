@@ -1,6 +1,6 @@
 /**
  *     ChannelBot is a program used to provide additional channels on ICS servers, such as FICS and BICS.
- *     Copyright (C) 2009-2012, 2014 John Nahlen
+ *     Copyright (C) 2009-2020 John Nahlen
  *     
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -84,5 +84,24 @@ public class StringUtils {
 	
 	public static boolean isNumeric(String str) {
 		return PatternService.getInstance().get("[0-9]+").matcher(str).matches();
+	}
+	
+	/**
+	 * Method that parses a string for a boolean. Returns 1 if true, 0 if false,
+	 * and -1 if it couldn't parse it.
+	 * 
+	 * @param in
+	 * @since Friday, April 30, 2010
+	 * @author John
+	 */
+	public static Boolean parseBoolean(String in) {
+		in = in.toLowerCase();
+		if (in.matches("1|y|yes|true")) {
+			return Boolean.TRUE;
+		} else if (in.matches("0|n|no|false")) {
+			return Boolean.FALSE;
+		}
+		
+		return null;
 	}
 }

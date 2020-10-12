@@ -1,6 +1,6 @@
 /**
  *     ChannelBot is a program used to provide additional channels on ICS servers, such as FICS and BICS.
- *     Copyright (C) 2014 John Nahlen
+ *     Copyright (C) 2014-2020 John Nahlen
  *     
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
 package ChannelBot.commands;
 
 import java.util.Collections;
-import java.util.List;
 
 import ChannelBot.Channel;
 import ChannelBot.ChannelBot;
@@ -47,10 +46,9 @@ public class InchannelCommand extends Command {
 			User user = bot.getUser(args);
 			if (user != null) {
 				StringBuilder b = new StringBuilder(ChannelBot.getUsername() + ":\\n" + user.getName() + " is in the following channels:\\n");
-				List<Integer> list = user.getInChannels();
-				int size = list.size();
-				for(int i=0;i<size;i++) {
-					b.append(list.get(i) + " ");
+				Integer[] channelNumberArray = user.getInChannels().toArray(new Integer[0]);
+				for (Integer channelNumber : channelNumberArray) {
+					b.append(channelNumber).append(" ");
 				}
 				ChannelBot.getInstance().getServerConnection().qtell(getUsername(), b.toString());
 			} else {

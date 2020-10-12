@@ -1,6 +1,6 @@
 /**
  *     ChannelBot is a program used to provide additional channels on ICS servers, such as FICS and BICS.
- *     Copyright (C) 2009-2012, 2014 John Nahlen
+ *     Copyright (C) 2009-2020 John Nahlen
  *     
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -24,16 +24,13 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.NavigableMap;
-import java.util.Properties;
-import java.util.TreeMap;
-import java.util.List;
-import java.util.TimeZone;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import ChannelBot.config.impl.MainChannelBotConfigurationProvider;
+import ChannelBot.persist.DatabaseConnection;
+import ChannelBot.persist.SQLiteConnection;
 
 /**
  * Main class for the ChannelBot project.
@@ -46,10 +43,8 @@ public class ChannelBot {
 	// TODO allow for customized (configurable) standard messages
 	// TODO potentially allow multiple bots to run on one application instance
 	// TODO begin to use a logger (e.g. log4j) instead of sysout / syserr
-	// TODO use an sqllite or apache derby database instead of flat files
 	
-	
-	private static ChannelBot singletonInstance = new ChannelBot();
+	public static ChannelBot singletonInstance;
 	private static String publishdate;
 	public static String programmer;
 	public static int MAX_NAME_LENGTH;
@@ -63,7 +58,7 @@ public class ChannelBot {
 	public static String debugRegexMatch(Matcher m) {
 		StringBuilder str = new StringBuilder(m.groupCount() + " [");
 		for(int i=1;i<=m.groupCount();i++) {
-			str.append("" + m.group(i));
+			str.append(m.group(i));
 			if (i != m.groupCount()) 
 				str.append(", ");
 		}
@@ -102,7 +97,7 @@ public class ChannelBot {
 
 	/**
 	 * Method that parses user input, and executes the appropriate action.
-	 * @param in User input
+	 * @param line User input
 	 * @return If successful.
 	 */
 	public static boolean parseCommand(String line) {
@@ -173,12 +168,12 @@ public class ChannelBot {
 					return false;
 				}
 				
-				/*if (!isProgrammer) {
+				if (!isProgrammer && bot.isBotDisabled) {
 					getInstance().getServerConnection().qtell(username, 
 							getInstance().getServerConnection().getUsername() + " is currently undergoing " +
 									"maintainence and is unavailable for use. Apologies for the inconvenience.");
 					return false;
-				}*/
+				}
 				
 				Pattern messagePattern = patternService.get("^((?:\\+|\\-|=)?[a-zA-Z]+(?:-[a-zA-Z]+)?)(?: (.*))?$");
 				Matcher messageMatcher = messagePattern.matcher(message);
@@ -295,6 +290,7 @@ public class ChannelBot {
 	public static boolean logTells = false;
 	//public String botStorageDir = null;
 	public String botConfigFilePath = null;
+	public boolean isBotDisabled;
 	private NavigableMap<Integer, Channel> Channels = new TreeMap<Integer, Channel>();
 	public ServerConnection serverConnection;
 	public String[] allUsernamesCache;
@@ -303,9 +299,9 @@ public class ChannelBot {
 	private PersistanceProvider persistanceProvider;
 	private ChannelFactory channelFactory;
 	private Metrics metrics;
-	private SQLiteConnection databaseConnection;
+	private DatabaseConnection databaseConnection;
 	
-	private ChannelBot() {
+	protected ChannelBot() {
 		
 	}
 
@@ -318,22 +314,27 @@ public class ChannelBot {
 			System.exit(1);
 		}
 		
-		final ChannelBot bot = getInstance();
+		ChannelBotFactory channelBotFactory = new ChannelBotFactory();
+		
+		final ChannelBot bot = channelBotFactory.createChannelBot();
+		ChannelBot.singletonInstance = bot;
+		
 		bot.setUserMap(new HashMap<String,User>());
 		bot.botConfigFilePath = args[0];
 		bot.setPersistanceProvider(new PersistanceProvider());
 		bot.setChannelFactory(new ChannelFactory());
 		bot.setMetrics(new Metrics());
 		if (!new File(bot.botConfigFilePath).exists()) {
-			System.out
-					.println("Cannot find configuration path " + bot.botConfigFilePath + ".\n" +
-							"Exiting now.");
+			System.out.println("Cannot find configuration path " + bot.botConfigFilePath + ".\n" + "Exiting now.");
 			System.exit(1);
 		}
 		
 		try {
-			bot.loadProperties();
-		} catch (IOException e) {
+			File configFile = new File(bot.botConfigFilePath);
+			Properties configuration = MainChannelBotConfigurationProvider.withConfigurationPath(configFile).getConfiguration();
+			bot.digestConfiguration(configuration);
+			bot.config = configuration;
+		} catch (Exception e) {
 			System.err.println("There was a problem loading configuration.");
 			ChannelBot.logError(e);
 		}
@@ -525,73 +526,57 @@ public class ChannelBot {
 		
 	}
 	
-	private void loadProperties() throws IOException {
-		Properties botConfig = new Properties();
-		botConfig.load(new FileReader(botConfigFilePath));
-		
-		// expand file paths from {botStorageDir}
-		String[] properties = { "config.files.db", "config.files.pid",
-				"config.files.helpfiles", "config.files.language",
-				"config.files.errorLog", "config.files.base",
-				"config.files.ban", "config.files.channels" };
-		for(int i=0;i<properties.length;i++) {
-			String prop = botConfig.getProperty(properties[i]);
-			botConfig.setProperty(properties[i],prop.replace("{botStorageDir}", botConfig.getProperty("config.files.botStorageDir")));
-		}
-		
-		String prop = botConfig.getProperty("config.files.helpfiles");
+	private void digestConfiguration(Properties properties) {
+		String prop = properties.getProperty("config.files.helpfiles");
 		if (prop == null || prop.isEmpty()) {
 			System.out.println("Required parameter config.files.helpfiles not provided.\nExiting now.");
 			System.exit(1);
 		}
 		
-		prop = botConfig.getProperty("config.files.errorLog");
+		prop = properties.getProperty("config.files.errorLog");
 		if (prop == null || prop.isEmpty()) {
 			System.out.println("Required parameter config.files.errorLog not provided.\nExiting now.");
 			System.exit(1);
 		}
-		prop = botConfig.getProperty("config.files.base");
+		prop = properties.getProperty("config.files.base");
 		if (prop == null || prop.isEmpty()) {
 			System.out.println("Required parameter config.files.base not provided.\nExiting now.");
 			System.exit(1);
 		}
-		prop = botConfig.getProperty("config.files.channels");
+		prop = properties.getProperty("config.files.channels");
 		if (prop == null || prop.isEmpty()) {
 			System.out.println("Required parameter config.files.channels not provided.\nExiting now.");
 			System.exit(1);
 		}
-		prop = botConfig.getProperty("config.channels.maxModCount");
+		prop = properties.getProperty("config.channels.maxModCount");
 		if (prop == null || prop.isEmpty()) {
 			System.out.println("Required parameter config.channels.maxModCount not provided.\nExiting now.");
 			System.exit(1);
 		}
 		MAX_CHANNEL_MODERATORS = Integer.parseInt(prop);
-		prop = botConfig.getProperty("config.channels.maxNameLength");
+		prop = properties.getProperty("config.channels.maxNameLength");
 		if (prop == null || prop.isEmpty()) {
 			System.out.println("Required parameter config.channels.maxNameLength not provided.\nExiting now.");
 			System.exit(1);
 		}
 		MAX_NAME_LENGTH = Integer.parseInt(prop);
-		prop = botConfig.getProperty("config.channels.maxPasswordLength");
+		prop = properties.getProperty("config.channels.maxPasswordLength");
 		if (prop == null || prop.isEmpty()) {
 			System.out.println("Required parameter config.channels.maxPasswordLength not provided.\nExiting now.");
 			System.exit(1);
 		}
 		MAX_PASSWORD_LENGTH = Integer.parseInt(prop);
-		programmer = botConfig.getProperty("config.bot.programmer");
+		programmer = properties.getProperty("config.bot.programmer");
 		if (programmer == null || programmer.isEmpty()) {
 			System.out.println("Required parameter config.bot.programmer not provided.\nExiting now.");
 			System.exit(1);
 		}
 		
-		publishdate = botConfig.getProperty("config.bot.publishDate");
+		publishdate = properties.getProperty("config.bot.publishDate");
 		if (publishdate == null || publishdate.isEmpty()) {
 			System.out.println("Required parameter config.bot.publishDate not provided.\nExiting now.");
 			System.exit(1);
 		}
-		
-		// write the pid file
-		this.config = botConfig;
 	}
 	
 	private void writePID(String pid) throws IOException {
@@ -642,12 +627,16 @@ public class ChannelBot {
 				if (user == null) {
 					continue;
 				}
-				List<Integer> list = user.getInChannels();
-				if (!list.contains(c.getID())) {
-					list.add(c.getID());
-				}
+				TreeSet<Integer> list = user.getInChannels();
+				list.add(c.getID());
 			}
 		}
+	}
+	
+	public void setProperties(Properties properties) {
+		this.config = properties;
+		
+		this.digestConfiguration(properties);
 	}
 	
 	public Properties getProperties() {
@@ -701,14 +690,22 @@ public class ChannelBot {
 	}
 	
 	public void deleteChannel(Channel channel) {
-		Channels.remove(channel.getID());
-		
 		try {
-			ChannelBot.getInstance().getPersistanceProvider().deleteChannelFromDb(channel.getID());
+			getPersistanceProvider().deleteChannelFromDb(channel.getID());
+
+			for(String memberUsername : channel.getMembers()) {
+				User memberUser = getUser(memberUsername);
+				if (memberUser != null) {
+					memberUser.getInChannels().remove(channel.getID());
+					getPersistanceProvider().saveUserToDb(memberUser);
+				}
+			}
 		} catch (Exception e) {
 			System.err.println("There was a problem saving information.");
 			ChannelBot.logError(e);
 		}
+
+		Channels.remove(channel.getID());
 	}
 	
 	public Channel getChannel(int channelNumber) {
@@ -734,6 +731,7 @@ public class ChannelBot {
 		user.setEcho(true);
 		user.setOnline(true);
 		user.setHeight(20);
+		user.setTimeZone(TimeZone.getTimeZone("GMT"));
 		
 		getUserList().add(user);
 		userMap.put(username.toLowerCase(), user);
@@ -776,7 +774,7 @@ public class ChannelBot {
 
 	public String getAllUsersAndAllChannels(User u) {
 		StringBuilder b = new StringBuilder();
-		List<Integer> inList = u.getInChannels();
+		TreeSet<Integer> inList = u.getInChannels();
 		
 		final String newline = "\\n";
 		int numChannels = 0;
@@ -878,11 +876,11 @@ public class ChannelBot {
 		this.metrics = metrics;
 	}
 
-	public SQLiteConnection getDatabaseConnection() {
+	public DatabaseConnection getDatabaseConnection() {
 		return databaseConnection;
 	}
 
-	public void setDatabaseConnection(SQLiteConnection databaseConnection) {
+	public void setDatabaseConnection(DatabaseConnection databaseConnection) {
 		this.databaseConnection = databaseConnection;
 	}
 

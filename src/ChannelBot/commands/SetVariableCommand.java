@@ -1,6 +1,6 @@
 /**
  *     ChannelBot is a program used to provide additional channels on ICS servers, such as FICS and BICS.
- *     Copyright (C) 2014 John Nahlen
+ *     Copyright (C) 2014-2020 John Nahlen
  *     
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -44,25 +44,6 @@ public class SetVariableCommand extends Command {
 		}
 	}
 	
-	/**
-	 * Method that parses a string for a boolean. Returns 1 if true, 0 if false,
-	 * and -1 if it couldn't parse it.
-	 * 
-	 * @param in
-	 * @since Friday, April 30, 2010
-	 * @author John
-	 */
-	private static Boolean parseBoolean(String in) {
-		in = in.toLowerCase();
-		if (in.matches("1|y|yes|true")) {
-			return Boolean.TRUE;
-		} else if (in.matches("0|n|no|false")) {
-			return Boolean.FALSE;
-		}
-		
-		return null;
-	}
-	
 	private void changeUserVariable(User user, String variable, String value) {
 		final String errmess = ChannelBot.getUsername() + ": Unable to parse your input.";
 
@@ -72,7 +53,7 @@ public class SetVariableCommand extends Command {
 		boolean disableToldToCmd = StringUtils.startsWithIgnoreCase(variable, "disabletoldto");
 		
 		if (showTimeCmd || showSwearWordsCmd || showEchoCmd || disableToldToCmd) {
-			Boolean status = parseBoolean(value);
+			Boolean status = StringUtils.parseBoolean(value);
 			if (status == null) {
 				ChannelBot.getInstance().getServerConnection().qtell(user.getName(), errmess);
 				return;	
@@ -108,8 +89,8 @@ public class SetVariableCommand extends Command {
 			return;
 		}
 		
-		
-		if (StringUtils.startsWithIgnoreCase(variable, "time")) {
+		// set user's timezone
+		if (variable.equalsIgnoreCase("tzone") || variable.matches(StringUtils.buildCommandRegex("time[zone]"))) {
 			TimeZone tz = TimeZoneUtils.getTimeZone(value);
 			if (tz != null) {
 				user.setTimeZone(tz);

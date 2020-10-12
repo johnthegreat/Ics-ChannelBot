@@ -1,6 +1,6 @@
 /**
  *     ChannelBot is a program used to provide additional channels on ICS servers, such as FICS and BICS.
- *     Copyright (C) 2014 John Nahlen
+ *     Copyright (C) 2014-2020 John Nahlen
  *     
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -22,6 +22,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
+
+import ChannelBot.persist.SQLiteConnection;
 
 public class PersistanceProvider {
 	
@@ -53,7 +56,7 @@ public class PersistanceProvider {
 	
 	public List<User> loadUserBase() throws SQLException {
 		// load list of users from database
-		ResultSet resultSet = ChannelBot.getInstance().getDatabaseConnection().execute("SELECT username FROM user").getResultSet();
+		ResultSet resultSet = ChannelBot.getInstance().getDatabaseConnection().execute("SELECT username FROM user ORDER BY username ASC").getResultSet();
 		List<User> userList = new ArrayList<User>();
 		while(resultSet.next()) {
 			User user = loadUserFromDb(resultSet.getString("username"));
@@ -175,6 +178,10 @@ public class PersistanceProvider {
 		user.setDisableToldToString(resultSet.getInt("v_disableToldToString") == 1);
 		user.setHeight(resultSet.getInt("v_height"));
 		user.setTimeZone(TimeZoneUtils.getTimeZone(resultSet.getString("v_timeZone")));
+		if (user.getTimeZone() == null) {
+			System.err.println(String.format("Timezone is null for username = %s, may indicate data corruption or parsing error. Abbreviation = %s. Using GMT.",user.getName(),resultSet.getString("v_timeZone")));
+			user.setTimeZone(TimeZone.getTimeZone("GMT"));
+		}
 		return user;
 	}
 	

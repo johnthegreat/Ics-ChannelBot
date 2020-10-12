@@ -1,6 +1,6 @@
 /**
  *     ChannelBot is a program used to provide additional channels on ICS servers, such as FICS and BICS.
- *     Copyright (C) 2009-2011, 2014 John Nahlen
+ *     Copyright (C) 2009-2020 John Nahlen
  *     
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -79,7 +79,7 @@ public class CommunicationBuffer {
 			b.append(ChannelBot.getUsername() + ": There is no more to show.");
 		} else if (pointer < chunks.length) {
 			b.append(chunks[pointer++]);
-			if (pointer+1 <= chunks.length) b.append("\\nTo see more, tell me \"next\".");
+			if (pointer+1 <= chunks.length) b.append(String.format("\\nTo see more, \"tell %s next\".",ChannelBot.getUsername()));
 		}
 		return b.toString();
 	}

@@ -1,6 +1,6 @@
 /**
  *     ChannelBot is a program used to provide additional channels on ICS servers, such as FICS and BICS.
- *     Copyright (C) 2014 John Nahlen
+ *     Copyright (C) 2014-2020 John Nahlen
  *     
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -28,64 +28,80 @@ public class HelpCommand extends Command {
 
 	@Override
 	public void execute() {
+		File fileList = new File(ChannelBot.getInstance().getProperties().getProperty("config.files.helpfiles"));
+		String[] files = fileList.list(new FilenameFilter() {
+			@Override
+			public boolean accept(File dir, String name) {
+				return name.endsWith(".txt");
+			}
+		});
+		if (files == null) {
+			System.err.println("Directory not found: " + fileList.getAbsolutePath());
+			ChannelBot.getInstance().getServerConnection().qtell(getUsername(),String.format("Help files are missing, please report to %s.",ChannelBot.programmer));
+			return;
+		}
+		if (files.length == 0) {
+			System.err.println("No help files found: " + fileList.getAbsolutePath());
+			ChannelBot.getInstance().getServerConnection().qtell(getUsername(),String.format("No help files are available, please report to %s.",ChannelBot.programmer));
+			return;
+		}
+
+		for (int i = 0; i < files.length; i++) {
+			files[i] = files[i].replaceAll(".txt", "");
+		}
+
 		String topic = getArguments();
 		if (topic != null) {
 			topic = topic.trim();
 		}
-		while (topic.contains("./")) {
-			topic = topic.replace("./", "");
-		}
 		
 		StringBuilder qtell = new StringBuilder();
-		if (!topic.equals("")) {
+		if (topic != null && !topic.equals("")) {
+			if (!topic.matches("^[a-zA-Z]+$")) {
+				System.err.println(String.format("Not a valid help file topic: %s",topic));
+				ChannelBot.getInstance().getServerConnection().qtell(getUsername(),String.format("Not a valid help file topic: %s",topic));
+				return;
+			}
+
+			while (topic.contains("./")) {
+				topic = topic.replace("./", "");
+			}
+
+			for(String file : files) {
+				if (topic.equalsIgnoreCase(file)) {
+					topic = file;
+					break;
+				}
+			}
+
 			try {
 				File file = new File(ChannelBot.getInstance().getProperties().getProperty("config.files.helpfiles") + File.separator + topic + ".txt");
 				if (file.exists()) {
-					qtell.append("Help file for " + topic + ":" + "\\n");
+					qtell.append(String.format("Help file for %s:\\n",topic));
 					qtell.append("-----\\n");
-					BufferedReader read = new BufferedReader(new FileReader(
-							file));
+					BufferedReader read = new BufferedReader(new FileReader(file));
 					while (read.ready()) {
-						qtell.append(read.readLine() + "\\n");
+						qtell.append(read.readLine()).append("\\n");
 					}
 					read.close();
 					qtell.append("------");
 				} else {
-					qtell.append("No help file for " + topic + " exists.");
+					qtell.append(String.format("No help file for %s exists.",topic));
 				}
 				ChannelBot.getInstance().getServerConnection().qtell(getUsername(), qtell.toString());
 			} catch (IOException ioe) {
 				ChannelBot.logError(ioe);
 				ChannelBot.getInstance().getServerConnection().qtell(getUsername(), "\\nAn error has occurred showing the " + "\""
-						+ topic + "\" help file.\\nPlease report this to "
-						+ ChannelBot.programmer + " immediately.");
+						+ topic + "\" help file.\\nPlease report this to " + ChannelBot.programmer + " immediately.");
 			}
 		} else {
 			qtell.append("Available help files: (tell me \"help <topic>\" to read a help file)\\n");
 			qtell.append("-----\\n");
-			File fileList = new File(ChannelBot.getInstance().getProperties().getProperty("config.files.helpfiles"));
-			String[] files = fileList.list(new FilenameFilter() {
-				@Override
-				public boolean accept(File dir, String name) {
-					return name.endsWith(".txt");
+
+			for(String str : files) {
+				if (str.length() > 0) {
+					qtell.append(str).append("\\n");
 				}
-			});
-			if (files == null) {
-				System.err.println("Directory not found: " + fileList.getAbsolutePath());
-				ChannelBot.getInstance().getServerConnection().qtell(getUsername(),"Help files are missing, please report this to " + ChannelBot.programmer + " immediately.");
-				return;
-			}
-			
-			if (files.length > 0) {
-				for (int i = 0; i < files.length; i++) {
-					String str = files[i].replaceAll(".txt", "");
-					if (!str.equals("")) {
-						qtell.append(str + "\\n");
-					}
-				}
-				//QTELL.append(files[files.length - 1].replaceAll(".txt", "") + "\\n");
-			} else {
-				qtell.append("No help files available.\\n");
 			}
 			qtell.append("-----");
 			ChannelBot.getInstance().getServerConnection().qtell(getUsername(), qtell.toString());

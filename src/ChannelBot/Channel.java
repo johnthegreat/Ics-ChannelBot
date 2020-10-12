@@ -1,6 +1,6 @@
 /**
  *     ChannelBot is a program used to provide additional channels on ICS servers, such as FICS and BICS.
- *     Copyright (C) 2009-2014 John Nahlen
+ *     Copyright (C) 2009-2020 John Nahlen
  *     
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -87,8 +87,9 @@ public class Channel {
 		setMembers(new ArrayList<String>());
 		moderators = new ArrayList<String>();
 		historyTime = 1000 * 60;
-		historyTime *= Integer.parseInt(ChannelBot.getInstance()
-				.getProperties().getProperty("config.channels.history"));
+		if (ChannelBot.getInstance() != null && ChannelBot.getInstance().getProperties() != null) {
+			historyTime *= Integer.parseInt(ChannelBot.getInstance().getProperties().getProperty("config.channels.history"));
+		}
 		history = new LRUTimerCache<ChannelTell>(historyTime);
 		channelChangedEventListeners = new ArrayList<ChannelChangedEventListener>();
 	}
@@ -196,17 +197,19 @@ public class Channel {
 		}
 		User user = ChannelBot.getInstance().getUser(username);
 		if (user != null && user.getInChannels().contains(getID())) {
-			user.getInChannels().remove(Integer.valueOf(getID()));
+			user.getInChannels().remove(getID());
 			try {
 				ChannelBot.getInstance().getPersistanceProvider().removeChannelUserFromDb(this, user);
 			} catch (SQLException e) {
 				ChannelBot.logError(e);
 			}
+
+			tell("", username + " has been removed from the channel by " + moderator + ".");
+			ChannelBot.getInstance().getServerConnection().qtell(username,
+					ChannelBot.getUsername() + ": You have been kicked out of channel #" + getID() + "!");
+			return true;
 		}
-		tell("", username + " has been removed from the channel by " + moderator + ".");
-		ChannelBot.getInstance().getServerConnection().qtell(username,
-			ChannelBot.getUsername() + ": You have been kicked out of channel #" + getID() + "!");
-		return true;
+		return false;
 	}
 
 	/**
@@ -234,8 +237,7 @@ public class Channel {
 		
 		User permUser = ChannelBot.getInstance().getUser(username);
 		if (permUser != null) {
-			int pos = permUser.getInChannels().indexOf(getID());
-			permUser.getInChannels().remove(pos);
+			permUser.getInChannels().remove(getID());
 			
 			try {
 				ChannelBot.getInstance().getPersistanceProvider().removeChannelUserFromDb(this, permUser);
@@ -246,7 +248,6 @@ public class Channel {
 		if (!silent) {
 			tell("", username + " has left channel #" + getID() + ".");
 		}
-		return;
 	}
 
 	public void logTell(String mess) {

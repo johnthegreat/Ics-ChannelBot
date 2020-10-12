@@ -1,6 +1,6 @@
 /**
  *     ChannelBot is a program used to provide additional channels on ICS servers, such as FICS and BICS.
- *     Copyright (C) 2014 John Nahlen
+ *     Copyright (C) 2014-2020 John Nahlen
  *     
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -25,6 +25,7 @@ import ChannelBot.commands.AddUserToListCommand;
 import ChannelBot.commands.ChannelCleanerCommand;
 import ChannelBot.commands.CreateChannelCommand;
 import ChannelBot.commands.DeleteChannelCommand;
+import ChannelBot.commands.DisableBotCommand;
 import ChannelBot.commands.ExecuteCommand;
 import ChannelBot.commands.ExitCommand;
 import ChannelBot.commands.HelpCommand;
@@ -171,6 +172,10 @@ public class CommandResolver {
 		
 		if (patternService.get("persist").matcher(commandName).matches()) {
 			return new PersistCommand();
+		}
+		
+		if (patternService.get("disable").matcher(commandName).matches()) {
+			return new DisableBotCommand();
 		}
 		
 		return null;

@@ -1,6 +1,6 @@
 /**
  *     ChannelBot is a program used to provide additional channels on ICS servers, such as FICS and BICS.
- *     Copyright (C) 2010-2014 John Nahlen
+ *     Copyright (C) 2010-2020 John Nahlen
  *     
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -15,9 +15,8 @@
  */
 package ChannelBot;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.TimeZone;
+import java.util.TreeSet;
 
 public class User {
 	private String name = "";
@@ -25,14 +24,14 @@ public class User {
 	private TimeZone timeZone;
 	private boolean echo = true;
 	private boolean showSwearWords = false;
-	private List<Integer> inChannels;
+	private TreeSet<Integer> inChannels;
 	private Boolean isOnline = null; // we don't know!
 	private boolean disableToldToString = false;
 	private int height = 20;
 
 	public User() {
 		timeZone = TimeZoneUtils.getTimeZone("PST");
-		inChannels = new ArrayList<Integer>();
+		inChannels = new TreeSet<Integer>();
 	}
 
 	public User(String username) {
@@ -80,12 +79,8 @@ public class User {
 		this.showSwearWords = showSwearWords;
 	}
 
-	public List<Integer> getInChannels() {
+	public TreeSet<Integer> getInChannels() {
 		return inChannels;
-	}
-
-	public void setInChannels(List<Integer> inChannels) {
-		this.inChannels = inChannels;
 	}
 
 	public void setOnline(boolean isOnline) {

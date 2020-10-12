@@ -1,6 +1,6 @@
 /**
  *     ChannelBot is a program used to provide additional channels on ICS servers, such as FICS and BICS.
- *     Copyright (C) 2014 John Nahlen
+ *     Copyright (C) 2014-2020 John Nahlen
  *     
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@ import ChannelBot.Channel;
 import ChannelBot.ChannelBot;
 import ChannelBot.ChannelChangedEvent;
 import ChannelBot.Command;
+import ChannelBot.User;
 
 public class CreateChannelCommand extends Command {
 
@@ -27,12 +28,18 @@ public class CreateChannelCommand extends Command {
 		String[] args = getArguments().split(" ");
 		String channelName = "";
 		String channelPassword = "";
-		if (args.length > 1)
+		if (args.length > 1) {
 			channelName = args[0];
-		if (args.length > 2)
+		}
+		if (args.length > 2) {
 			channelName = args[1];
+		}
+
+		boolean isProgrammer = getUsername().equals(ChannelBot.programmer);
+
+		User requestingUser = ChannelBot.getInstance().getUser(getUsername());
 		
-		if (!getUsername().equals(ChannelBot.programmer)) {
+		if (!isProgrammer) {
 			int maxChannelsPerUser = Integer.parseInt(ChannelBot.getInstance().getProperties().getProperty("config.channels.maxChannelsPerUser"));
 			if (maxChannelsPerUser != 0) {
 				int numChannelsForUser = ChannelBot.getInstance().getMetrics().getNumberOfChannelsForUser(ChannelBot.getInstance(), getUsername());
@@ -47,7 +54,7 @@ public class CreateChannelCommand extends Command {
 		}
 		
 		Channel channel = ChannelBot.getInstance().getChannelFactory().create(getUsername(), channelName, channelPassword);
-		if (getUsername().equals(ChannelBot.programmer) && getChannelNumber() > 0) {
+		if (isProgrammer && getChannelNumber() > 0) {
 			if (ChannelBot.getInstance().isChannelNumberAvailable(getChannelNumber())) {
 				channel.setID(getChannelNumber());
 			} else {
@@ -57,6 +64,10 @@ public class CreateChannelCommand extends Command {
 		}
 		ChannelBot.getInstance().addChannel(channel);
 		channel.fireChangedEvent(new ChannelChangedEvent());
+
+		if (requestingUser != null) {
+			requestingUser.getInChannels().add(channel.getID());
+		}
 		
 		StringBuilder qt = new StringBuilder(ChannelBot.getUsername() + ": Channel #" + channel.getID() + " has been created");
 		qt.append(channelPassword.equals("") ? "." : " with password \"" + channelPassword + "\".");
