@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.TimeZone;
 
-public class Channel {
+public class Channel implements Comparable<Channel> {
 	public static ChannelChangedEventListener channelChangedEventListener = new ChannelChangedEventListener() {
 		@Override
 		public void run() {
@@ -414,5 +414,10 @@ public class Channel {
 				listener.run();
 			}
 		}
+	}
+
+	@Override
+	public int compareTo(Channel o) {
+		return Integer.compare(getID(), o.getID());
 	}
 }

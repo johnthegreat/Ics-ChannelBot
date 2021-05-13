@@ -1,6 +1,6 @@
 /*
  *     ChannelBot is a program used to provide additional channels on ICS servers, such as FICS and BICS.
- *     Copyright (C) 2014 John Nahlen
+ *     Copyright (C) 2014-2021 John Nahlen
  *     
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -16,7 +16,8 @@
 package ChannelBot.commands;
 
 import java.util.Date;
-import java.util.NavigableMap;
+import java.util.Set;
+import java.util.TreeSet;
 
 import ChannelBot.Channel;
 import ChannelBot.ChannelBot;
@@ -29,56 +30,72 @@ public class ListChannelsCommand extends Command {
 
 	@Override
 	public void execute() {
-		// moderator MAY BE NULL!
+		final int ICS_MAX_CHARACTER_LIMIT = 1000;
+
+		final ChannelBot channelBot = ChannelBot.getInstance();
+		final User user = channelBot.getUser(getUsername());
+		Channel[] channels = channelBot.getChannels();
 		
-		// sorts the map into ascending order by keys.
-		NavigableMap<Integer,Channel> channels = ChannelBot.getInstance().getChannelMap().descendingMap().descendingMap();
-		Channel[] chans = channels.values().toArray(new Channel[channels.size()]);
-		
-		final String newline = "\\n";
+		final String newLine = "\\n";
 		int numChannels = 0;
-		StringBuilder qt = new StringBuilder();
+		final StringBuilder qtell = new StringBuilder();
 		
-		boolean isProgrammer = getUsername().equals(ChannelBot.programmer);
+		final boolean isProgrammer = getUsername().equals(ChannelBot.programmer);
 		if (isProgrammer) {
 			// The programmer gets to see additional information about the channel
-			qt.append(String.format("%3s. %-22s %-18s %s"+newline,"###","Name","Moderator","Last Tell"));
+			qtell.append(String.format("%3s. %-22s %-18s %s"+newLine,"###","Name","Moderator","Last Tell"));
 		} else {
-			qt.append(String.format("%3s. %-22s %-18s"+newline,"###","Name","Moderator"));
+			qtell.append(String.format("%3s. %-22s %-18s"+newLine,"###","Name","Moderator"));
 		}
 		
 		String moderator = getArguments();
 		if (moderator != null && moderator.length() == 0) {
 			moderator = null;
 		}
-		User user = ChannelBot.getInstance().getUser(getUsername());
-		
-		for(int i=0;i<chans.length;i++) {
-			Channel c = chans[i];
-			if (moderator == null || (moderator != null && Utils.listContainsIgnoreCase(c.getModerators(), moderator))) {
-				boolean hasPassword = c.getPassword() != null && !c.getPassword().equals("");
-				if (isProgrammer) {
-					String fancyDate = null;
-					if (c.getLastTellTime() != 0L) {
-						fancyDate = TimeZoneUtils.getTime(user.getTimeZone(), new Date(c.getLastTellTime()), "MM/dd/yyyy hh:mm:ss a z");
-					} else {
-						fancyDate = "Never";
-					}
-					qt.append(String.format("%3s. %-22s %-18s %s",""+c.getID(),c.getName() + (hasPassword?"*":""),c.getHeadModerator(),fancyDate));
-				} else {
-					qt.append(String.format("%3s. %-22s %-18s",""+c.getID(),c.getName() + (hasPassword?"*":""),c.getHeadModerator()));
+
+		if (moderator != null) {
+			// Only show channels that have this moderator
+			final Set<Channel> filteredChannels = new TreeSet<>();
+			for (Channel channel : channels) {
+				if (Utils.listContainsIgnoreCase(channel.getModerators(), moderator)) {
+					filteredChannels.add(channel);
 				}
-				qt.append(newline);
-				numChannels++;
 			}
+			channels = filteredChannels.toArray(new Channel[0]);
 		}
 
-		qt.append(newline + "An asterisk (\"*\") indicates that the channel is password protected." + newline);
-		qt.append("There " + (numChannels == 1 ? "is" : "are") + " "
-				+ numChannels + " channel" + (numChannels == 1 ? "" : "s")
+		for (final Channel channel : channels) {
+			final boolean hasPassword = channel.getPassword() != null && !channel.getPassword().equals("");
+			if (isProgrammer) {
+				String fancyDate = "Never";
+				if (channel.getLastTellTime() != 0L) {
+					fancyDate = TimeZoneUtils.getTime(user.getTimeZone(), new Date(channel.getLastTellTime()), "MM/dd/yyyy hh:mm:ss a z");
+				}
+				qtell.append(String.format("%3s. %-22s %-18s %s", channel.getID(), channel.getName() + (hasPassword ? "*" : ""), channel.getHeadModerator(), fancyDate));
+			} else {
+				qtell.append(String.format("%3s. %-22s %-18s", channel.getID(), channel.getName() + (hasPassword ? "*" : ""), channel.getHeadModerator()));
+			}
+			qtell.append(newLine);
+			numChannels++;
+		}
+
+		final boolean onlyOneChannel = numChannels == 1;
+		qtell.append(newLine + "An asterisk (\"*\") indicates that the channel is password protected." + newLine);
+		qtell.append("There " + (onlyOneChannel ? "is" : "are") + " "
+				+ numChannels + " channel" + (onlyOneChannel ? "" : "s")
 				+ " listed.");
-		
-		ChannelBot.getInstance().getServerConnection().qtell(getUsername(), qt.toString());
+
+		// Break the qtell up into multiple qtells if its too long of a message to send to the ICS
+		String qtellString = qtell.toString();
+		while(qtellString.length() >= ICS_MAX_CHARACTER_LIMIT) {
+			final int pos = qtellString.substring(0, ICS_MAX_CHARACTER_LIMIT).lastIndexOf(newLine);
+			final String qtellStringSegment = qtellString.substring(0, pos);
+			channelBot.getServerConnection().qtell(getUsername(), qtellStringSegment);
+			qtellString = qtellString.substring(pos + newLine.length());
+		}
+		if (qtellString.trim().length() > 0) {
+			channelBot.getServerConnection().qtell(getUsername(), qtellString);
+		}
 	}
 
 }
