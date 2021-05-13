@@ -1,4 +1,4 @@
-/**
+/*
  *     ChannelBot is a program used to provide additional channels on ICS servers, such as FICS and BICS.
  *     Copyright (C) 2014 John Nahlen
  *     
@@ -35,13 +35,15 @@ public class RemoveModeratorCommand extends Command {
 				// If the user is the channel's head moderator or is the programmer
 				if (channel.isHeadModerator(getUsername()) || getUsername().equals(ChannelBot.programmer)) {
 					// If the user is already a moderator
-					if (Utils.listContainsIgnoreCase(channel.getModeratorsAsList(), usernameToRemove)) {
+					if (Utils.listContainsIgnoreCase(channel.getModerators(), usernameToRemove)) {
 						if (!usernameToRemove.equals(channel.getHeadModerator())) {
 							channel.removeModerator(usernameToRemove);
 							bot.getServerConnection().qtell(getUsername(), ChannelBot.getUsername() + ": User has been removed as a moderator.");
 							try {
 								User user = bot.getUser(usernameToRemove);
-								bot.getPersistanceProvider().addChannelUserToDb(channel, user);
+								if (user != null) {
+									bot.getDatabaseProviderRepository().getChannelUserProvider().createOrUpdateChannelUser(channel, user);
+								}
 							} catch (Exception e) {
 								ChannelBot.logError(e);
 							}

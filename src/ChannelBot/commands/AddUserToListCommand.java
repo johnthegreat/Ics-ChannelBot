@@ -1,4 +1,4 @@
-/**
+/*
  *     ChannelBot is a program used to provide additional channels on ICS servers, such as FICS and BICS.
  *     Copyright (C) 2014 John Nahlen
  *     
@@ -27,14 +27,16 @@ public class AddUserToListCommand extends Command {
 
 	@Override
 	public void execute() {
+		ChannelBot channelBot = ChannelBot.getInstance();
+
 		if (!getUsername().equals(ChannelBot.programmer)) {
-			ChannelBot.getInstance().getServerConnection().qtell(getUsername(), ChannelBot.getUsername() + 
+			channelBot.getServerConnection().qtell(getUsername(), ChannelBot.getUsername() +
 				": Insufficient privileges. You must be the programmer to issue this command.");
 			return;
 		}
 		
 		String usernameToAdd = getArguments();
-		User user = ChannelBot.getInstance().getUser(usernameToAdd);
+		User user = channelBot.getUser(usernameToAdd);
 		if (user != null) {
 			usernameToAdd = user.getName();
 		}
@@ -44,12 +46,12 @@ public class AddUserToListCommand extends Command {
 		String listName = getCommandName().replace("+", "");
 		if (listName.equals("ban")) {
 			if (usernameToAdd.equals(ChannelBot.programmer)) {
-				ChannelBot.getInstance().getServerConnection().qtell(getUsername(), ChannelBot.getUsername() + 
+				channelBot.getServerConnection().qtell(getUsername(), ChannelBot.getUsername() +
 					": You cannot add the programmer to the banned list.");
 				return;
 			}
 			
-			userList = ChannelBot.getInstance().getBannedUsers();
+			userList = channelBot.getBannedUsers();
 		} else {
 			System.err.println("No other lists supported at this time. Only 'ban'.");
 			return;
@@ -57,14 +59,14 @@ public class AddUserToListCommand extends Command {
 		
 		if (Utils.listContainsIgnoreCase(userList, usernameToAdd)) {
 			// this user is already on the ban list
-			ChannelBot.getInstance().getServerConnection().qtell(getUsername(), ChannelBot.getUsername() + 
+			channelBot.getServerConnection().qtell(getUsername(), ChannelBot.getUsername() +
 				String.format(": User \"%s\" is already on the %s list.",usernameToAdd,listName));
 		} else {
 			userList.add(usernameToAdd);
-			ChannelBot.getInstance().getServerConnection().qtell(getUsername(), ChannelBot.getUsername() + 
+			channelBot.getServerConnection().qtell(getUsername(), ChannelBot.getUsername() +
 				String.format(": User \"%s\" has been added to the %s list.",usernameToAdd,listName));
 			try {
-				ChannelBot.getInstance().getPersistanceProvider().addToUserListDb(listName, usernameToAdd);
+				channelBot.getDatabaseProviderRepository().getUserListProvider().addUserToList(listName, usernameToAdd);
 			} catch (SQLException e) {
 				ChannelBot.logError(e);
 			}

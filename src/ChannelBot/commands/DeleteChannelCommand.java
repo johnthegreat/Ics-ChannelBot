@@ -1,4 +1,4 @@
-/**
+/*
  *     ChannelBot is a program used to provide additional channels on ICS servers, such as FICS and BICS.
  *     Copyright (C) 2014 John Nahlen
  *     
@@ -23,32 +23,33 @@ import ChannelBot.Utils;
 public class DeleteChannelCommand extends Command {
 	@Override
 	public void execute() {
-		if (getUsername().equals(ChannelBot.programmer) && getArguments().equals("*")) {
+		ChannelBot channelBot = ChannelBot.getInstance();
+		boolean isProgrammer = getUsername().equals(ChannelBot.programmer);
+
+		if (isProgrammer && getArguments().equals("*")) {
 			// delete all channels
-			ChannelBot.getInstance().getServerConnection().qtell(getUsername(), ChannelBot.getUsername() + ": All channels will now be deleted.");
-			Channel[] channels = ChannelBot.getInstance().getChannels();
+			channelBot.getServerConnection().qtell(getUsername(), ChannelBot.getUsername() + ": All channels will now be deleted.");
+			Channel[] channels = channelBot.getChannels();
 			for(Channel channel : channels) {
-				ChannelBot.getInstance().deleteChannel(channel);
+				channelBot.deleteChannel(channel);
 			}
-		}
-		
-		if (getChannelNumber() == 0) {
-			ChannelBot.getInstance().getServerConnection().qtell(getUsername(),
-					ChannelBot.getUsername() + ": Could not find that channel number. Please try again.");
 			return;
 		}
-		
-		Channel channel = ChannelBot.getInstance().getChannel(getChannelNumber());
-		if (channel != null) {
-			if (!Utils.listContainsIgnoreCase(channel.getModeratorsAsList(), getUsername()) && !getUsername().equals(ChannelBot.programmer)) {
-				ChannelBot.getInstance().getServerConnection().qtell(getUsername(), ChannelBot.getUsername() + ": Insufficient privileges. You must be the Head Moderator to use this command.");
+
+		Channel channel = channelBot.getChannel(getChannelNumber());
+		if (channel == null) {
+			channelBot.getServerConnection().qtell(getUsername(),
+					ChannelBot.getUsername() + ": Could not find that channel, please try again.");
+		} else {
+			if (!Utils.listContainsIgnoreCase(channel.getModerators(), getUsername()) && !isProgrammer) {
+				channelBot.getServerConnection().qtell(getUsername(), ChannelBot.getUsername() + ": Insufficient privileges. You must be the Head Moderator to use this command.");
 				return;
 			}
 			
-			if (channel.isHeadModerator(getUsername()) || getUsername().equals(ChannelBot.programmer)) {
+			if (channel.isHeadModerator(getUsername()) || isProgrammer) {
 				channel.tell("", "Channel #" + getChannelNumber() + " will now be deleted.");
-				ChannelBot.getInstance().getServerConnection().qtell(channel.getHeadModerator(), ChannelBot.getUsername() + ": Thank you for using " + ChannelBot.getUsername() + ".");
-				ChannelBot.getInstance().deleteChannel(channel);
+				channelBot.getServerConnection().qtell(channel.getHeadModerator(), ChannelBot.getUsername() + ": Thank you for using " + ChannelBot.getUsername() + ".");
+				channelBot.deleteChannel(channel);
 			}
 		}
 	}

@@ -1,4 +1,4 @@
-/**
+/*
  *     ChannelBot is a program used to provide additional channels on ICS servers, such as FICS and BICS.
  *     Copyright (C) 2014 John Nahlen
  *     
@@ -45,7 +45,7 @@ public class RemoveUserCommand extends Command {
 				return;
 			}
 			
-			if (!Utils.listContainsIgnoreCase(channel.getModeratorsAsList(), getUsername())) {
+			if (!Utils.listContainsIgnoreCase(channel.getModerators(), getUsername())) {
 				bot.getServerConnection().qtell(getUsername(), ChannelBot.getUsername() + ": Insufficient privileges. You must be a channel moderator to use this command.");
 				return;
 			}

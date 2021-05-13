@@ -1,4 +1,4 @@
-/**
+/*
  *     ChannelBot is a program used to provide additional channels on ICS servers, such as FICS and BICS.
  *     Copyright (C) 2014 John Nahlen
  *     
@@ -27,8 +27,8 @@ public class ExecuteCommand extends Command {
 		if (getUsername().equals(ChannelBot.programmer)) {
 			System.out.println("The execute command has been issued.");
 			
-			String args = getArguments();
-			if (!args.trim().equals("")) {
+			String args = getArguments().trim();
+			if (!args.equals("")) {
 				bot.getServerConnection().write(args);
 				bot.getServerConnection().qtell(getUsername(), ChannelBot.getUsername() + ": Command has been successfully executed.");
 			} else {

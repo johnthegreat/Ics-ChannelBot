@@ -1,4 +1,4 @@
-/**
+/*
  *     ChannelBot is a program used to provide additional channels on ICS servers, such as FICS and BICS.
  *     Copyright (C) 2014 John Nahlen
  *     
@@ -37,10 +37,12 @@ public class JoinChannelCommand extends Command {
 				} else {
 					channel.join(getUsername());
 					User user = ChannelBot.getInstance().getUser(getUsername());
-					try {
-						ChannelBot.getInstance().getPersistanceProvider().addChannelUserToDb(channel, user);
-					} catch (Exception e) {
-						ChannelBot.logError(e);
+					if (user != null) {
+						try {
+							ChannelBot.getInstance().getDatabaseProviderRepository().getChannelUserProvider().createOrUpdateChannelUser(channel, user);
+						} catch (Exception e) {
+							ChannelBot.logError(e);
+						}
 					}
 				}
 				return;

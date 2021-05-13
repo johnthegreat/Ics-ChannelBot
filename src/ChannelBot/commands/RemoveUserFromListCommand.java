@@ -1,4 +1,4 @@
-/**
+/*
  *     ChannelBot is a program used to provide additional channels on ICS servers, such as FICS and BICS.
  *     Copyright (C) 2014 John Nahlen
  *     
@@ -53,7 +53,7 @@ public class RemoveUserFromListCommand extends Command {
 			ChannelBot.getInstance().getServerConnection().qtell(getUsername(), ChannelBot.getUsername() + 
 				String.format(": User \"%s\" has been removed from the %s list.",usernameToRemove,listName));
 			try {
-				ChannelBot.getInstance().getPersistanceProvider().removeFromUserListDb(listName, usernameToRemove);
+				ChannelBot.getInstance().getDatabaseProviderRepository().getUserListProvider().removeUserFromList(listName, usernameToRemove);
 			} catch (SQLException e) {
 				ChannelBot.logError(e);
 			}

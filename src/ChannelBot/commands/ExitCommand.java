@@ -1,4 +1,4 @@
-/**
+/*
  *     ChannelBot is a program used to provide additional channels on ICS servers, such as FICS and BICS.
  *     Copyright (C) 2014 John Nahlen
  *     
@@ -18,20 +18,29 @@ package ChannelBot.commands;
 import ChannelBot.ChannelBot;
 import ChannelBot.Command;
 
+import java.io.IOException;
+
 public class ExitCommand extends Command {
 
 	@Override
 	public void execute() {
 		ChannelBot bot = ChannelBot.getInstance();
 		
-		if (getUsername().equals(ChannelBot.programmer)) {
-			System.out.println("The exit command has been issued, beginning application shutdown");
-			bot.getServerConnection().write("logout");
-			System.out.println("Shutdown complete. Thank you for using " + ChannelBot.getUsername() + ".");
-			System.exit(0);
-		} else {
+		if (!getUsername().equals(ChannelBot.programmer)) {
 			bot.getServerConnection().qtell(getUsername(), ChannelBot.getUsername() + ": Insufficient privileges. You must be the programmer to issue this command.");
+			return;
 		}
+
+		System.out.println("The exit command has been issued, beginning application shutdown");
+		bot.getServerConnection().write("logout");
+		try {
+			bot.getServerConnection().getUnderlyingSocket().close();
+		} catch (IOException e) {
+			ChannelBot.logError(e);
+		}
+
+		// Runs the shutdown hook before exiting. Shutdown hook persists data to the database
+		System.exit(0);
 	}
 
 }

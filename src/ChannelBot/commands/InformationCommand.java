@@ -1,4 +1,4 @@
-/**
+/*
  *     ChannelBot is a program used to provide additional channels on ICS servers, such as FICS and BICS.
  *     Copyright (C) 2014 John Nahlen
  *     
@@ -26,32 +26,35 @@ public class InformationCommand extends Command {
 
 	@Override
 	public void execute() {
+		ChannelBot channelBot = ChannelBot.getInstance();
+
 		if (getChannelNumber() > 0) {
-			Channel channel = ChannelBot.getInstance().getChannel(getChannelNumber());
+			Channel channel = channelBot.getChannel(getChannelNumber());
 			if (channel != null) {
-				ChannelBot.getInstance().getServerConnection().qtell(getUsername(), getChannelInformation(channel));
+				channelBot.getServerConnection().qtell(getUsername(), getChannelInformation(channel));
 			} else {
-				ChannelBot.getInstance().getServerConnection().qtell(getUsername(), ChannelBot.getUsername() + ": Could not find that channel number. Please try again.");
+				channelBot.getServerConnection().qtell(getUsername(), ChannelBot.getUsername() + ": Could not find that channel number. Please try again.");
 			}
 		} else {
-			ChannelBot.getInstance().getServerConnection().qtell(getUsername(), ChannelBot.getUsername() + ": Could not find that channel number. Please try again.");
+			channelBot.getServerConnection().qtell(getUsername(), ChannelBot.getUsername() + ": Could not find that channel number. Please try again.");
 		}
 	}
 	
 	private String getChannelInformation(Channel channel) {
 		StringBuilder qt = new StringBuilder("Channel #" + channel.getID() + " Information:\\n");
-		qt.append("Name: " + channel.getName() + "\\n");
-		qt.append("Head Moderator: " + channel.getHeadModerator() + "\\n");
-		qt.append("Moderators: " + java.util.Arrays.toString(channel.getModerators()) + "\\n");
+		qt.append(String.format("Name: %s\\n",channel.getName()));
+		qt.append(String.format("Head Moderator: %s\\n",channel.getHeadModerator()));
+		qt.append(String.format("Moderators: %s\\n",java.util.Arrays.toString(channel.getModerators().toArray(new String[0]))));
 		qt.append(String.format("Member Count: %s",channel.getMembers().size()));
+
 		if (getUsername().equals(ChannelBot.programmer)) {
 			// only the programmer can see this information.
-			qt.append("\\nPassword: " + channel.getPassword());
+			qt.append(String.format("\\nPassword: %s",channel.getPassword()));
 			long time = channel.getLastTellTime();
 			TimeZone tz = ChannelBot.getInstance().getUser(getUsername()).getTimeZone();
-			SimpleDateFormat s = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss z");
+			SimpleDateFormat s = new SimpleDateFormat(ChannelBot.DATE_FORMAT);
 			s.setTimeZone(tz);
-			qt.append("\\nLast Tell: " + (time == 0 ? "Never" : s.format(time)));
+			qt.append(String.format("\\nLast Tell: %s",(time == 0 ? "Never" : s.format(time))));
 		}
 		return qt.toString();
 	}

@@ -1,4 +1,4 @@
-/**
+/*
  *     ChannelBot is a program used to provide additional channels on ICS servers, such as FICS and BICS.
  *     Copyright (C) 2020 John Nahlen
  *
@@ -43,10 +43,10 @@ public class MainChannelBotConfigurationProvider implements ConfigurationProvide
 				"config.files.helpfiles", "config.files.language",
 				"config.files.errorLog", "config.files.base",
 				"config.files.ban", "config.files.channels" };
-		
-		for(int i=0;i<propertiesToExpand.length;i++) {
-			String myProperty = properties.getProperty(propertiesToExpand[i]);
-			properties.setProperty(propertiesToExpand[i],myProperty.replace("{botStorageDir}", properties.getProperty("config.files.botStorageDir")));
+
+		for (String s : propertiesToExpand) {
+			String myProperty = properties.getProperty(s);
+			properties.setProperty(s, myProperty.replace("{botStorageDir}", properties.getProperty("config.files.botStorageDir")));
 		}
 	}
 	

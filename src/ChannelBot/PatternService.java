@@ -1,4 +1,4 @@
-/**
+/*
  *     ChannelBot is a program used to provide additional channels on ICS servers, such as FICS and BICS.
  *     Copyright (C) 2012, 2014 John Nahlen
  *     
@@ -28,13 +28,12 @@ public class PatternService {
 	}
 	
 	private PatternService() {
-		map = new HashMap<String, Pattern>();
+		map = new HashMap<>();
 	}
 	
 	protected Pattern add(String key,Pattern pattern) {
-		Pattern p = Pattern.compile(key);
-		map.put(key, p);
-		return p;
+		map.put(key, pattern);
+		return pattern;
 	}
 	
 	/** value is built and returned if key doesn't exist, and stored in map for future use */
@@ -49,7 +48,7 @@ public class PatternService {
 	
 	public String[] getKeys() {
 		java.util.Set<String> set = map.keySet();
-		return set.toArray(new String[set.size()]);
+		return set.toArray(new String[0]);
 	}
 
 	public static PatternService getInstance() {

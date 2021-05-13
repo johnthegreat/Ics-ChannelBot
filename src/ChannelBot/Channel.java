@@ -1,4 +1,4 @@
-/**
+/*
  *     ChannelBot is a program used to provide additional channels on ICS servers, such as FICS and BICS.
  *     Copyright (C) 2009-2020 John Nahlen
  *     
@@ -25,21 +25,18 @@ import java.util.Properties;
 import java.util.TimeZone;
 
 public class Channel {
-	private static String[] filteredWords = new String[0];
-	private static String filter = "#%&@#%&@#%&@";
-	
 	public static ChannelChangedEventListener channelChangedEventListener = new ChannelChangedEventListener() {
 		@Override
 		public void run() {
 			try {
-				ChannelBot.getInstance().getPersistanceProvider().saveChannelToDb(getChannel());
+				ChannelBot.getInstance().getDatabaseProviderRepository().getChannelProvider().updateChannel(getChannel());
 				List<String> channelMembers = getChannel().getMembers();
 				for(String username : channelMembers) {
 					User user = ChannelBot.getInstance().getUser(username);
 					if (user != null) {
-						ChannelBot.getInstance().getPersistanceProvider().addChannelUserToDb(getChannel(), user);
+						ChannelBot.getInstance().getDatabaseProviderRepository().getChannelUserProvider().createOrUpdateChannelUser(getChannel(), user);
 					} else {
-						System.err.println(String.format("User could not be found (so was not persisted): %s",username));
+						System.err.printf("User could not be found (so was not persisted): %s%n",username);
 					}
 				}
 			} catch (SQLException e) {
@@ -47,28 +44,6 @@ public class Channel {
 			}
 		}
 	};
-
-	public static String[] getFilteredWords() {
-		return filteredWords;
-	}
-
-	public static void setFilteredWords(String[] filteredWords) {
-		Channel.filteredWords = filteredWords;
-	}
-
-	public static String filterBadLanguage(String mess) {
-		String[] filteredWords = getFilteredWords();
-		if (filteredWords.length == 0) {
-			return mess;
-		}
-		for (int i = 0; i < filteredWords.length; i++) {
-			if (StringUtils.containsIgnoreCase(mess, filteredWords[i])) {
-				mess = StringUtils.replaceAllIgnoreCase(mess, filteredWords[i],
-						filter.substring(0, filteredWords[i].trim().length()));
-			}
-		}
-		return mess;
-	}
 
 	private int chid;
 	private long lastTellTime = 0L;
@@ -84,14 +59,14 @@ public class Channel {
 	private List<ChannelChangedEventListener> channelChangedEventListeners;
 
 	public Channel() {
-		setMembers(new ArrayList<String>());
-		moderators = new ArrayList<String>();
+		setMembers(new ArrayList<>());
+		moderators = new ArrayList<>();
 		historyTime = 1000 * 60;
 		if (ChannelBot.getInstance() != null && ChannelBot.getInstance().getProperties() != null) {
 			historyTime *= Integer.parseInt(ChannelBot.getInstance().getProperties().getProperty("config.channels.history"));
 		}
 		history = new LRUTimerCache<ChannelTell>(historyTime);
-		channelChangedEventListeners = new ArrayList<ChannelChangedEventListener>();
+		channelChangedEventListeners = new ArrayList<>();
 	}
 
 	public boolean isModerator(String username) {
@@ -153,11 +128,7 @@ public class Channel {
 		return members;
 	}
 
-	public String[] getModerators() {
-		return moderators.toArray(new String[moderators.size()]);
-	}
-
-	public List<String> getModeratorsAsList() {
+	public List<String> getModerators() {
 		return moderators;
 	}
 
@@ -199,7 +170,7 @@ public class Channel {
 		if (user != null && user.getInChannels().contains(getID())) {
 			user.getInChannels().remove(getID());
 			try {
-				ChannelBot.getInstance().getPersistanceProvider().removeChannelUserFromDb(this, user);
+				ChannelBot.getInstance().getDatabaseProviderRepository().getChannelUserProvider().deleteChannelUser(this, user);
 			} catch (SQLException e) {
 				ChannelBot.logError(e);
 			}
@@ -240,7 +211,7 @@ public class Channel {
 			permUser.getInChannels().remove(getID());
 			
 			try {
-				ChannelBot.getInstance().getPersistanceProvider().removeChannelUserFromDb(this, permUser);
+				ChannelBot.getInstance().getDatabaseProviderRepository().getChannelUserProvider().deleteChannelUser(this, permUser);
 			} catch (SQLException e) {
 				ChannelBot.logError(e);
 			}
@@ -328,8 +299,9 @@ public class Channel {
 			if (user == null || (getLastTellTime() != 0 && !user.isOnline()))
 				continue;
 
-			if (user.getOnlineStatus() != null)
+			if (user.getOnlineStatus() != null) {
 				sentTo++;
+			}
 			// add time stamp if the user wants it
 			if (user.isShowTime()) {
 				String date = TimeZoneUtils.getTime(user.getTimeZone(),
@@ -341,8 +313,8 @@ public class Channel {
 			if ((user.getName().equals(usernameTagsRemoved) && user.isEcho())
 					|| !user.getName().equals(usernameTagsRemoved)) {
 				// if user wants swear words blocked
-				if (user.isShowSwearWords() == false) {
-					mess = filterBadLanguage(mess);
+				if (!user.isShowSwearWords()) {
+					mess = ChannelBot.getInstance().getLanguageFilterService().filterLanguage(mess);
 				}
 				ChannelBot.getInstance().getServerConnection()
 						.qtell(user.getName(), mess);
@@ -398,7 +370,7 @@ public class Channel {
 						new Date(tell.getTimestamp()), "hh:mm:ss.S a z");
 				String message = tell.getMessage();
 				if (!user.isShowSwearWords()) {
-					message = filterBadLanguage(message);
+					message = ChannelBot.getInstance().getLanguageFilterService().filterLanguage(message);
 				}
 				b.append("[" + date + "]: " + tell.getUsername() + "("
 						+ tell.getChannelNum() + "): " + message + "\\n");

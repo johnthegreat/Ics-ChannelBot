@@ -1,4 +1,4 @@
-/**
+/*
  *     ChannelBot is a program used to provide additional channels on ICS servers, such as FICS and BICS.
  *     Copyright (C) 2014 John Nahlen
  *     
@@ -38,15 +38,15 @@ public class ChannelCleaner extends Object {
 		Channel[] channels = instance.getChannels();
 		for(Channel channel : channels) {
 			
-			long threshold = System.currentTimeMillis() - (1000 * 60 * 60 * 24 * numDays);
+			long threshold = System.currentTimeMillis() - ((long) 1000 * 60 * 60 * 24 * numDays);
 			if (channel.getLastTellTime() < threshold) {
-				System.out.println(String.format("Cleaning channel #%s",channel.getID()));
+				System.out.printf("Cleaning channel #%s%n",channel.getID());
 				instance.deleteChannel(channel);
 				numChannelsRemoved++;
 			}
 		}
 		
-		System.out.println(String.format("%s channel(s) have been cleaned.",numChannelsRemoved));
+		System.out.printf("%s channel(s) have been cleaned.%n",numChannelsRemoved);
 		return numChannelsRemoved;
 	}
 }

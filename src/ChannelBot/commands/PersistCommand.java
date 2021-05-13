@@ -1,4 +1,4 @@
-/**
+/*
  *     ChannelBot is a program used to provide additional channels on ICS servers, such as FICS and BICS.
  *     Copyright (C) 2014 John Nahlen
  *     
@@ -17,33 +17,23 @@ package ChannelBot.commands;
 
 import ChannelBot.ChannelBot;
 import ChannelBot.Command;
-import ChannelBot.PersistanceProvider;
+import ChannelBot.DataPersistenceService;
 
 public class PersistCommand extends Command {
 
 	public void execute() {
 		ChannelBot bot = ChannelBot.getInstance();
-		if (getUsername().equalsIgnoreCase(ChannelBot.programmer)) {
-			Thread thread = new Thread(new Runnable() {
-				@Override
-				public void run() {
-					try {
-						PersistanceProvider pp = ChannelBot.getInstance().getPersistanceProvider();
-						System.out.println(pp);
-						/*pp.loadChannelListFromDb();
-						pp.loadUserBase();
-						pp.loadUserLists();*/
-						
-						
-					} catch (Exception e) {
-						ChannelBot.logError(e);
-					}
-				}
-			});
-			thread.setDaemon(false);
-			thread.start();
-		} else {
+		if (!getUsername().equalsIgnoreCase(ChannelBot.programmer)) {
 			bot.getServerConnection().qtell(getUsername(), ChannelBot.getUsername() + ": Insufficient privileges. You must be the programmer to issue this command.");
+			return;
+		}
+
+		try {
+			DataPersistenceService.persist(ChannelBot.getInstance());
+			bot.getServerConnection().qtell(getUsername(), ChannelBot.getUsername() + ": Data has been saved.");
+		} catch (Exception e) {
+			bot.getServerConnection().qtell(getUsername(), ChannelBot.getUsername() + ": Unable to save data due to an exception.");
+			ChannelBot.logError(e);
 		}
 	}
 }

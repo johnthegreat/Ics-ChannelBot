@@ -1,4 +1,4 @@
-/**
+/*
  *     ChannelBot is a program used to provide additional channels on ICS servers, such as FICS and BICS.
  *     Copyright (C) 2014-2020 John Nahlen
  *     
@@ -80,7 +80,7 @@ public class SetVariableCommand extends Command {
 			}
 			
 			try {
-				ChannelBot.getInstance().getPersistanceProvider().saveUserToDb(user);
+				ChannelBot.getInstance().getDatabaseProviderRepository().getUserProvider().updateUser(user);
 			} catch (SQLException e) {
 				ChannelBot.logError(e);
 			}
@@ -95,7 +95,7 @@ public class SetVariableCommand extends Command {
 			if (tz != null) {
 				user.setTimeZone(tz);
 				try {
-					ChannelBot.getInstance().getPersistanceProvider().saveUserToDb(user);
+					ChannelBot.getInstance().getDatabaseProviderRepository().getUserProvider().updateUser(user);
 				} catch (SQLException e) {
 					ChannelBot.logError(e);
 				}
@@ -118,7 +118,7 @@ public class SetVariableCommand extends Command {
 				}
 				user.setHeight(height);
 				try {
-					ChannelBot.getInstance().getPersistanceProvider().saveUserToDb(user);
+					ChannelBot.getInstance().getDatabaseProviderRepository().getUserProvider().updateUser(user);
 				} catch (SQLException e) {
 					ChannelBot.logError(e);
 				}

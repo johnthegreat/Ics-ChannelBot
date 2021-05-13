@@ -1,4 +1,4 @@
-/**
+/*
  *     ChannelBot is a program used to provide additional channels on ICS servers, such as FICS and BICS.
  *     Copyright (C) 2009-2020 John Nahlen
  *     
@@ -19,12 +19,8 @@ import java.util.HashMap;
 
 public class StringUtils {
 	public static boolean startsWithIgnoreCase(String str, String startWith) {
-		if (str.toLowerCase().startsWith(
-				startWith.substring(0, startWith.length()).toLowerCase())) {
-			return true;
-		} else {
-			return false;
-		}
+		return str.toLowerCase().startsWith(
+				startWith.toLowerCase());
 	}
 
 	public static boolean containsIgnoreCase(String str, String contains) {
@@ -36,7 +32,7 @@ public class StringUtils {
 		StringBuilder regex = new StringBuilder();
 		for (int i = 0; i < search.length(); i++) {
 			char c = search.charAt(i);
-			String s = new String(""+c);
+			String s = Character.toString(c);
 			regex.append("[");
 			regex.append(s.toUpperCase());
 			regex.append(s.toLowerCase());
@@ -47,7 +43,7 @@ public class StringUtils {
 		return mess;
 	}
 	
-	private static HashMap<String,String> builtRegexMap = new HashMap<String,String>();
+	private static final HashMap<String,String> builtRegexMap = new HashMap<String,String>();
 	
 	/** Takes a string such as "exec[ute]" and returns a string: exec(?:|u|ut|ute).<br />
 	 * For Command Patterns. */
@@ -68,14 +64,13 @@ public class StringUtils {
 			} else if (chr == ']') {
 				b.append(")");
 			} else {
-				if (foundOptional == false) {
+				if (!foundOptional) {
 					b.append(chr);
 				} else {
 					newb.append(chr);
-					b.append(newb.toString() + "|");
+					b.append(newb.toString()).append("|");
 				}
 			}
-				
 		}
 
 		builtRegexMap.put(str, b.toString());

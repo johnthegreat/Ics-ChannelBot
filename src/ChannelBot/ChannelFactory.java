@@ -1,4 +1,4 @@
-/**
+/*
  *     ChannelBot is a program used to provide additional channels on ICS servers, such as FICS and BICS.
  *     Copyright (C) 2014 John Nahlen
  *     
@@ -27,7 +27,7 @@ public class ChannelFactory {
 		channel.setID(ChannelBot.getInstance().nextAvailableChannelNumber());
 		channel.setName(channelName);
 		channel.addPassword(moderator,channelPassword);
-		channel.getMembers().addAll(channel.getModeratorsAsList());
+		channel.getMembers().addAll(channel.getModerators());
 		channel.addChannelChangedEventListener(Channel.channelChangedEventListener);
 		return channel;
 	}

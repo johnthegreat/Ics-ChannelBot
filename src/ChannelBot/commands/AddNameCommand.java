@@ -1,4 +1,4 @@
-/**
+/*
  *     ChannelBot is a program used to provide additional channels on ICS servers, such as FICS and BICS.
  *     Copyright (C) 2014 John Nahlen
  *     
@@ -26,15 +26,15 @@ public class AddNameCommand extends Command {
 		ChannelBot bot = ChannelBot.getInstance();
 		String newName = getArguments();
 		
-		Channel ch = ChannelBot.getInstance().getChannel(getChannelNumber());
+		Channel ch = bot.getChannel(getChannelNumber());
 		if (ch != null) {
 			if (ch.isModerator(getUsername()) || ChannelBot.programmer.equals(getUsername())) {
-				int maximumChannelNameLength = Integer.parseInt(ChannelBot.getInstance().getProperties().getProperty("config.channels.maxNameLength"));
+				int maximumChannelNameLength = Integer.parseInt(bot.getProperties().getProperty("config.channels.maxNameLength"));
 				if (newName.length() <= maximumChannelNameLength) {
 					ch.setName(newName);
 					bot.getServerConnection().qtell(getUsername(), ChannelBot.getUsername() + ": Channel #" + getChannelNumber() + " Name has been changed to \"" + newName + "\".");
 				} else {
-					bot.getServerConnection().qtell(getUsername(), ChannelBot.getInstance() + ": Channel names can only have a maximum length of " + maximumChannelNameLength + ".");
+					bot.getServerConnection().qtell(getUsername(), ChannelBot.getUsername() + ": Channel names can only have a maximum length of " + maximumChannelNameLength + ".");
 				}
 			} else {
 				bot.getServerConnection().qtell(getUsername(), ChannelBot.getUsername() + ": Insufficient privileges. You must be a channel moderator to use this command.");

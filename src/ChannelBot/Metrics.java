@@ -1,4 +1,4 @@
-/**
+/*
  *     ChannelBot is a program used to provide additional channels on ICS servers, such as FICS and BICS.
  *     Copyright (C) 2014 John Nahlen
  *     
@@ -16,15 +16,12 @@
 package ChannelBot;
 
 public class Metrics {
-	public Metrics() {
-		
-	}
+	public Metrics() {}
 	
 	public int getNumberOfChannelsForUser(ChannelBot bot,String username) {
 		int numberOfChannelsForUser = 0;
 		Channel[] channels = bot.getChannels();
-		for(int i=0;i<channels.length;i++) {
-			Channel channel = channels[i];
+		for(Channel channel : channels) {
 			if (channel.isHeadModerator(username)) {
 				numberOfChannelsForUser++;
 			}

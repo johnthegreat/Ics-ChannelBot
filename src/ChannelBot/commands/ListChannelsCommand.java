@@ -1,4 +1,4 @@
-/**
+/*
  *     ChannelBot is a program used to provide additional channels on ICS servers, such as FICS and BICS.
  *     Copyright (C) 2014 John Nahlen
  *     
@@ -55,7 +55,7 @@ public class ListChannelsCommand extends Command {
 		
 		for(int i=0;i<chans.length;i++) {
 			Channel c = chans[i];
-			if (moderator == null || (moderator != null && Utils.listContainsIgnoreCase(c.getModeratorsAsList(), moderator))) {
+			if (moderator == null || (moderator != null && Utils.listContainsIgnoreCase(c.getModerators(), moderator))) {
 				boolean hasPassword = c.getPassword() != null && !c.getPassword().equals("");
 				if (isProgrammer) {
 					String fancyDate = null;

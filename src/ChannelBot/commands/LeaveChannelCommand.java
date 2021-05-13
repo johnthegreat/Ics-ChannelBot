@@ -1,4 +1,4 @@
-/**
+/*
  *     ChannelBot is a program used to provide additional channels on ICS servers, such as FICS and BICS.
  *     Copyright (C) 2014 John Nahlen
  *     
@@ -45,7 +45,9 @@ public class LeaveChannelCommand extends Command {
 					ChannelBot.getUsername() + ": You have left channel #" + channel.getID() + ".");
 			try {
 				User user = ChannelBot.getInstance().getUser(getUsername());
-				ChannelBot.getInstance().getPersistanceProvider().removeChannelUserFromDb(channel,user);
+				if (user != null) {
+					ChannelBot.getInstance().getDatabaseProviderRepository().getChannelUserProvider().deleteChannelUser(channel, user);
+				}
 			} catch (Exception e) {
 				ChannelBot.logError(e);
 			}

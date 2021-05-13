@@ -1,4 +1,4 @@
-/**
+/*
  *     ChannelBot is a program used to provide additional channels on ICS servers, such as FICS and BICS.
  *     Copyright (C) 2014-2020 John Nahlen
  *     
@@ -65,32 +65,30 @@ public class InchannelCommand extends Command {
 		for (int i = 0; i < size; i++) {
 			String listener = channel.getMembers().get(i);
 			User u = ChannelBot.getInstance().getUser(listener);
-			if (u == null) continue;
+			if (u == null) {
+				continue;
+			}
 			char ch = 0;
 			Boolean b = u.getOnlineStatus();
-			if (b == null) ch = '?'; else {
-				if (b.booleanValue() == true) ch = '+';
-				if (b.booleanValue() == false) ch = ' ';
-			}
-			
-			boolean isModerator = java.util.Collections.binarySearch(channel.getModeratorsAsList(), listener, String.CASE_INSENSITIVE_ORDER) >= 0;
-			
-			if (onlineOnly) {
-				if (ch == '+') {
-					qt.append(ch + " " + listener);
-					if (isModerator) {
-						qt.append("(m)");
-					}
-					qt.append("\\n");
-					listedcount++;
-				}
+			if (b == null) {
+				ch = '?';
 			} else {
-				qt.append(ch + " " + listener);
-				if (isModerator) {
-					qt.append("(m)");
-				}
-				qt.append("\\n");
+				ch = b ? '+' : ' ';
 			}
+			
+			boolean isModerator = java.util.Collections.binarySearch(channel.getModerators(), listener, String.CASE_INSENSITIVE_ORDER) >= 0;
+
+			// If we only want to see online users, and this user is not online, skip them.
+			if (onlineOnly && ch != '+') {
+				continue;
+			}
+
+			qt.append(String.format("%s %s",ch,listener));
+			if (isModerator) {
+				qt.append("(m)");
+			}
+			qt.append("\\n");
+			listedcount++;
 		}
 		
 		qt.append(size + " member" + (size==1?"":"s") + " in channel #"

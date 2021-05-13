@@ -1,4 +1,4 @@
-/**
+/*
  *     ChannelBot is a program used to provide additional channels on ICS servers, such as FICS and BICS.
  *     Copyright (C) 2020 John Nahlen
  *     
@@ -31,9 +31,13 @@ public class DisableBotCommand extends Command {
 			String args = getArguments().trim();
 			if (!args.equals("")) {
 				Boolean mode = StringUtils.parseBoolean(args);
-				bot.isBotDisabled = mode;
-				bot.getServerConnection().qtell(getUsername(), String.format("%s: Command has been successfully executed. %s is now %s.",
-						ChannelBot.getUsername(),ChannelBot.getUsername(),mode == true ? "disabled" : "enabled"));
+				if (mode == null) {
+					bot.getServerConnection().qtell(getUsername(), String.format("%s: Unable to parse arguments.", ChannelBot.getUsername()));
+				} else {
+					bot.isBotDisabled = mode;
+					bot.getServerConnection().qtell(getUsername(), String.format("%s: Command has been successfully executed. %s is now %s.",
+							ChannelBot.getUsername(), ChannelBot.getUsername(), bot.isBotDisabled ? "disabled" : "enabled"));
+				}
 			} else {
 				bot.getServerConnection().qtell(getUsername(), ChannelBot.getUsername() + ": Please provide arguments for that command.");
 			}

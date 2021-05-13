@@ -1,4 +1,4 @@
-/**
+/*
  *     ChannelBot is a program used to provide additional channels on ICS servers, such as FICS and BICS.
  *     Copyright (C) 2014-2020 John Nahlen
  *     
@@ -28,7 +28,9 @@ public class HelpCommand extends Command {
 
 	@Override
 	public void execute() {
-		File fileList = new File(ChannelBot.getInstance().getProperties().getProperty("config.files.helpfiles"));
+		ChannelBot channelBot = ChannelBot.getInstance();
+		
+		File fileList = new File(channelBot.getProperties().getProperty("config.files.helpfiles"));
 		String[] files = fileList.list(new FilenameFilter() {
 			@Override
 			public boolean accept(File dir, String name) {
@@ -37,12 +39,12 @@ public class HelpCommand extends Command {
 		});
 		if (files == null) {
 			System.err.println("Directory not found: " + fileList.getAbsolutePath());
-			ChannelBot.getInstance().getServerConnection().qtell(getUsername(),String.format("Help files are missing, please report to %s.",ChannelBot.programmer));
+			channelBot.getServerConnection().qtell(getUsername(),String.format("Help files are missing, please report to %s.",ChannelBot.programmer));
 			return;
 		}
 		if (files.length == 0) {
 			System.err.println("No help files found: " + fileList.getAbsolutePath());
-			ChannelBot.getInstance().getServerConnection().qtell(getUsername(),String.format("No help files are available, please report to %s.",ChannelBot.programmer));
+			channelBot.getServerConnection().qtell(getUsername(),String.format("No help files are available, please report to %s.",ChannelBot.programmer));
 			return;
 		}
 
@@ -59,7 +61,7 @@ public class HelpCommand extends Command {
 		if (topic != null && !topic.equals("")) {
 			if (!topic.matches("^[a-zA-Z]+$")) {
 				System.err.println(String.format("Not a valid help file topic: %s",topic));
-				ChannelBot.getInstance().getServerConnection().qtell(getUsername(),String.format("Not a valid help file topic: %s",topic));
+				channelBot.getServerConnection().qtell(getUsername(),String.format("Not a valid help file topic: %s",topic));
 				return;
 			}
 
@@ -75,7 +77,7 @@ public class HelpCommand extends Command {
 			}
 
 			try {
-				File file = new File(ChannelBot.getInstance().getProperties().getProperty("config.files.helpfiles") + File.separator + topic + ".txt");
+				File file = new File(channelBot.getProperties().getProperty("config.files.helpfiles") + File.separator + topic + ".txt");
 				if (file.exists()) {
 					qtell.append(String.format("Help file for %s:\\n",topic));
 					qtell.append("-----\\n");
@@ -88,10 +90,10 @@ public class HelpCommand extends Command {
 				} else {
 					qtell.append(String.format("No help file for %s exists.",topic));
 				}
-				ChannelBot.getInstance().getServerConnection().qtell(getUsername(), qtell.toString());
+				channelBot.getServerConnection().qtell(getUsername(), qtell.toString());
 			} catch (IOException ioe) {
 				ChannelBot.logError(ioe);
-				ChannelBot.getInstance().getServerConnection().qtell(getUsername(), "\\nAn error has occurred showing the " + "\""
+				channelBot.getServerConnection().qtell(getUsername(), "\\nAn error has occurred showing the " + "\""
 						+ topic + "\" help file.\\nPlease report this to " + ChannelBot.programmer + " immediately.");
 			}
 		} else {
@@ -104,7 +106,7 @@ public class HelpCommand extends Command {
 				}
 			}
 			qtell.append("-----");
-			ChannelBot.getInstance().getServerConnection().qtell(getUsername(), qtell.toString());
+			channelBot.getServerConnection().qtell(getUsername(), qtell.toString());
 		}
 	}
 

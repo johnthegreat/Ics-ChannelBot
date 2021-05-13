@@ -1,4 +1,4 @@
-/**
+/*
  *     ChannelBot is a program used to provide additional channels on ICS servers, such as FICS and BICS.
  *     Copyright (C) 2010-2020 John Nahlen
  *     
@@ -18,7 +18,7 @@ package ChannelBot;
 import java.util.TimeZone;
 import java.util.TreeSet;
 
-public class User {
+public class User implements Comparable<User> {
 	private String name = "";
 	private boolean showTime = true;
 	private TimeZone timeZone;
@@ -31,7 +31,7 @@ public class User {
 
 	public User() {
 		timeZone = TimeZoneUtils.getTimeZone("PST");
-		inChannels = new TreeSet<Integer>();
+		inChannels = new TreeSet<>();
 	}
 
 	public User(String username) {
@@ -84,7 +84,7 @@ public class User {
 	}
 
 	public void setOnline(boolean isOnline) {
-		this.isOnline = new Boolean(isOnline);
+		this.isOnline = isOnline;
 	}
 
 	public Boolean getOnlineStatus() {
@@ -95,7 +95,7 @@ public class User {
 		if (isOnline == null) {
 			return true;
 		} else {
-			return isOnline.booleanValue() == true;
+			return isOnline;
 		}
 	}
 
@@ -113,5 +113,10 @@ public class User {
 
 	public void setHeight(int height) {
 		this.height = height;
+	}
+
+	@Override
+	public int compareTo(User o) {
+		return getName().compareTo(o.getName());
 	}
 }

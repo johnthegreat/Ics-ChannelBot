@@ -1,4 +1,4 @@
-/**
+/*
  *     ChannelBot is a program used to provide additional channels on ICS servers, such as FICS and BICS.
  *     Copyright (C) 2014 John Nahlen
  *     
@@ -26,15 +26,15 @@ public class AddPasswordCommand extends Command {
 		ChannelBot bot = ChannelBot.getInstance();
 		String newPassword = getArguments();
 		
-		Channel channel = ChannelBot.getInstance().getChannel(getChannelNumber());
+		Channel channel = bot.getChannel(getChannelNumber());
 		if (channel != null) {
 			if (channel.isHeadModerator(getUsername())) {
-				int maximumChannelPasswordLength = Integer.parseInt(ChannelBot.getInstance().getProperties().getProperty("config.channels.maxPasswordLength"));
+				int maximumChannelPasswordLength = Integer.parseInt(bot.getProperties().getProperty("config.channels.maxPasswordLength"));
 				if (newPassword.length() <= maximumChannelPasswordLength) {
 					channel.addPassword(getUsername(), newPassword);
 					bot.getServerConnection().qtell(getUsername(), ChannelBot.getUsername() + ": Channel #" + getChannelNumber() + " Password has been changed to \"" + newPassword + "\".");
 				} else {
-					bot.getServerConnection().qtell(getUsername(), ChannelBot.getInstance() + ": Channel passwords can only have a maximum length of " + maximumChannelPasswordLength + ".");
+					bot.getServerConnection().qtell(getUsername(), ChannelBot.getUsername() + ": Channel passwords can only have a maximum length of " + maximumChannelPasswordLength + ".");
 				}
 			} else {
 				bot.getServerConnection().qtell(getUsername(), ChannelBot.getUsername() + ": Insufficient privileges. You must be the Head Moderator to use this command.");

@@ -1,4 +1,4 @@
-/**
+/*
  *     ChannelBot is a program used to provide additional channels on ICS servers, such as FICS and BICS.
  *     Copyright (C) 2014 John Nahlen
  *     
@@ -45,7 +45,7 @@ public class AddModeratorCommand extends Command {
 					}
 					
 					// If the user is already a moderator
-					if (!Utils.listContainsIgnoreCase(channel.getModeratorsAsList(), usernameToAdd)) {
+					if (!Utils.listContainsIgnoreCase(channel.getModerators(), usernameToAdd)) {
 						User user = bot.getUser(usernameToAdd);
 						if (user != null) {
 							usernameToAdd = user.getName();
@@ -53,7 +53,7 @@ public class AddModeratorCommand extends Command {
 						channel.addModerator(usernameToAdd);
 						bot.getServerConnection().qtell(getUsername(), ChannelBot.getUsername() + ": User has been added as a moderator.");
 						try {
-							bot.getPersistanceProvider().addChannelUserToDb(channel, user);
+							bot.getDatabaseProviderRepository().getChannelUserProvider().createOrUpdateChannelUser(channel, user);
 						} catch (Exception e) {
 							ChannelBot.logError(e);
 						}
