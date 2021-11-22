@@ -15,24 +15,28 @@
  */
 package ChannelBot.database;
 
-import ChannelBot.ChannelBot;
 import ChannelBot.User;
 import ChannelBot.TimeZoneUtils;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.TimeZone;
 
 public class UserProvider {
+    private Connection connection;
+
+    public UserProvider(Connection connection) {
+        this.connection = connection;
+    }
 
     public List<User> getUsers() throws SQLException {
         // load list of users from database
         final List<User> userList = new ArrayList<>();
 
-        try (PreparedStatement statement = ChannelBot.getInstance().getDatabaseConnection().prepareStatement("SELECT username FROM user ORDER BY username ASC")) {
+        try (PreparedStatement statement = connection.prepareStatement("SELECT username FROM user ORDER BY username ASC")) {
             statement.execute();
 
             ResultSet resultSet = statement.getResultSet();
@@ -46,7 +50,7 @@ public class UserProvider {
     }
 
     public User getUserByUsername(final String username) throws SQLException {
-        try (PreparedStatement statement = ChannelBot.getInstance().getDatabaseConnection().prepareStatement(
+        try (PreparedStatement statement = connection.prepareStatement(
                 "SELECT username,v_showTime,v_echo,v_languageFiltered,v_disableToldToString,v_height,v_timeZone FROM user WHERE username = ?")) {
             statement.setString(1, username);
             statement.execute();
@@ -71,7 +75,7 @@ public class UserProvider {
     }
 
     public void createOrUpdateUser(User user) throws SQLException {
-        try (PreparedStatement statement = ChannelBot.getInstance().getDatabaseConnection().prepareStatement(
+        try (PreparedStatement statement = connection.prepareStatement(
                 "INSERT OR REPLACE INTO user (username,v_showTime,v_echo,v_languageFiltered,v_disableToldToString,v_height,v_timeZone) VALUES (?,?,?,?,?,?,?)")) {
             statement.setString(1, user.getName());
             statement.setInt(2, user.isShowTime() ? 1 : 0);
@@ -85,7 +89,7 @@ public class UserProvider {
     }
 
     public void updateUser(User user) throws SQLException {
-        try (PreparedStatement preparedStatement = ChannelBot.getInstance().getDatabaseConnection().prepareStatement(
+        try (PreparedStatement preparedStatement = connection.prepareStatement(
                 "UPDATE user SET username = ?, v_showTime = ?, v_echo = ?, v_languageFiltered = ?, v_disableToldToString = ?, v_height = ?, v_timeZone = ? WHERE `username` LIKE ?")) {
             preparedStatement.setString(1, user.getName());
             preparedStatement.setInt(2, user.isShowTime() ? 1 : 0);

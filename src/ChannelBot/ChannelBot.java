@@ -254,7 +254,6 @@ public class ChannelBot {
 	private Properties config;
 	private ChannelFactory channelFactory;
 	private Metrics metrics;
-	private Connection databaseConnection;
 	private DatabaseProviderRepository databaseProviderRepository;
 	private LanguageFilterService languageFilterService;
 	
@@ -539,14 +538,6 @@ public class ChannelBot {
 	
 	public void setMetrics(Metrics metrics) {
 		this.metrics = metrics;
-	}
-
-	public Connection getDatabaseConnection() {
-		return databaseConnection;
-	}
-
-	public void setDatabaseConnection(Connection databaseConnection) {
-		this.databaseConnection = databaseConnection;
 	}
 
 	public boolean isChannelNumberAvailable(int channelNumber) {

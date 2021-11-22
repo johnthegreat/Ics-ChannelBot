@@ -16,13 +16,19 @@
 package ChannelBot.database;
 
 import ChannelBot.Channel;
-import ChannelBot.ChannelBot;
 import ChannelBot.User;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
 public class ChannelUserProvider {
+    private Connection connection;
+
+    public ChannelUserProvider(Connection connection) {
+        this.connection = connection;
+    }
+
     public void createOrUpdateChannelUser(Channel channel, User user) throws SQLException {
         String moderatorLevel = null;
         if (channel.isHeadModerator(user.getName())) {
@@ -31,7 +37,7 @@ public class ChannelUserProvider {
             moderatorLevel = "normal";
         }
 
-        try (PreparedStatement preparedStatement = ChannelBot.getInstance().getDatabaseConnection().prepareStatement(
+        try (PreparedStatement preparedStatement = connection.prepareStatement(
                 "INSERT OR REPLACE INTO channel_user (channel,username,moderator) VALUES (?,?,?)")) {
             preparedStatement.setInt(1, channel.getID());
             preparedStatement.setString(2, user.getName());
@@ -41,7 +47,7 @@ public class ChannelUserProvider {
     }
 
     public void deleteChannelUser(Channel channel, User user) throws SQLException {
-        try (PreparedStatement preparedStatement = ChannelBot.getInstance().getDatabaseConnection().prepareStatement(
+        try (PreparedStatement preparedStatement = connection.prepareStatement(
                 "DELETE FROM channel_user WHERE channel = ? AND username = ?")) {
             preparedStatement.setInt(1, channel.getID());
             preparedStatement.setString(2, user.getName());
@@ -50,7 +56,7 @@ public class ChannelUserProvider {
     }
 
     public void deleteChannelUsers(int channelId) throws SQLException {
-        try (PreparedStatement preparedStatement = ChannelBot.getInstance().getDatabaseConnection().prepareStatement(
+        try (PreparedStatement preparedStatement = connection.prepareStatement(
                 "DELETE FROM channel_user WHERE channel = ?")) {
             preparedStatement.setInt(1, channelId);
             preparedStatement.execute();

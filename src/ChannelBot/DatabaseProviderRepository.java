@@ -20,17 +20,19 @@ import ChannelBot.database.ChannelUserProvider;
 import ChannelBot.database.UserListProvider;
 import ChannelBot.database.UserProvider;
 
+import java.sql.Connection;
+
 public class DatabaseProviderRepository {
     private ChannelProvider channelProvider;
     private ChannelUserProvider channelUserProvider;
     private UserListProvider userListProvider;
     private UserProvider userProvider;
 
-    public DatabaseProviderRepository() {
-        setChannelProvider(new ChannelProvider());
-        setChannelUserProvider(new ChannelUserProvider());
-        setUserListProvider(new UserListProvider());
-        setUserProvider(new UserProvider());
+    public DatabaseProviderRepository(Connection connection) {
+        setChannelProvider(new ChannelProvider(connection));
+        setChannelUserProvider(new ChannelUserProvider(connection));
+        setUserListProvider(new UserListProvider(connection));
+        setUserProvider(new UserProvider(connection));
     }
 
     public ChannelProvider getChannelProvider() {

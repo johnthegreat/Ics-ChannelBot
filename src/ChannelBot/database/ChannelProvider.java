@@ -16,8 +16,8 @@
 package ChannelBot.database;
 
 import ChannelBot.Channel;
-import ChannelBot.ChannelBot;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -25,11 +25,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ChannelProvider {
+    private Connection connection;
+
+    public ChannelProvider(Connection connection) {
+        this.connection = connection;
+    }
+
     public List<Channel> getChannels() throws SQLException {
         // load list of channels from database
         List<Channel> channelList = new ArrayList<>();
 
-        try (PreparedStatement statement = ChannelBot.getInstance().getDatabaseConnection().prepareStatement("SELECT * FROM channel ORDER BY num ASC")) {
+        try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM channel ORDER BY num ASC")) {
             statement.execute();
             ResultSet resultSet = statement.getResultSet();
             while(resultSet.next()) {
@@ -52,7 +58,7 @@ public class ChannelProvider {
     }
 
     protected void populateChannelUsersFromDb(Channel channel) throws SQLException {
-        try (PreparedStatement preparedStatement = ChannelBot.getInstance().getDatabaseConnection().prepareStatement(
+        try (PreparedStatement preparedStatement = connection.prepareStatement(
                 "SELECT username,moderator FROM channel_user WHERE channel = ?")) {
             preparedStatement.setInt(1, channel.getID());
             preparedStatement.execute();
@@ -75,14 +81,14 @@ public class ChannelProvider {
     }
 
     public void deleteChannel(int id) throws SQLException {
-        try (PreparedStatement statement = ChannelBot.getInstance().getDatabaseConnection().prepareStatement("DELETE FROM channel WHERE num = ?")) {
+        try (PreparedStatement statement = connection.prepareStatement("DELETE FROM channel WHERE num = ?")) {
             statement.setInt(1, id);
             statement.execute();
         }
     }
 
     public void createOrUpdateChannel(Channel channel) throws SQLException {
-        try (PreparedStatement preparedStatement = ChannelBot.getInstance().getDatabaseConnection().prepareStatement(
+        try (PreparedStatement preparedStatement = connection.prepareStatement(
                 "INSERT OR REPLACE INTO channel (num,name,password,lastTellTime) VALUES (?,?,?,?)")) {
             preparedStatement.setInt(1, channel.getID());
             preparedStatement.setString(2, channel.getName());
@@ -93,7 +99,7 @@ public class ChannelProvider {
     }
 
     public void updateChannel(Channel channel) throws SQLException {
-        try (PreparedStatement preparedStatement = ChannelBot.getInstance().getDatabaseConnection().prepareStatement(
+        try (PreparedStatement preparedStatement = connection.prepareStatement(
                 "UPDATE channel SET `name` = ?, `password` = ?, `lastTellTime` = ? WHERE `num` = ?")) {
             preparedStatement.setString(1, channel.getName());
             preparedStatement.setString(2, channel.getPassword());

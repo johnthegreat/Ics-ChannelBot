@@ -71,9 +71,8 @@ public class Main {
         try {
             SQLiteConnectionFactory sqLiteConnectionFactory = new SQLiteConnectionFactory();
             Connection databaseConnection = sqLiteConnectionFactory.connect(bot.getProperties().getProperty("config.files.db"));
-            bot.setDatabaseConnection(databaseConnection);
 
-            bot.setDatabaseProviderRepository(new DatabaseProviderRepository());
+            bot.setDatabaseProviderRepository(new DatabaseProviderRepository(databaseConnection));
 
             String pidFilePath = bot.getProperties().getProperty("config.files.pid");
             if (pidFilePath != null && pidFilePath.length() > 0) {

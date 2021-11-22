@@ -15,8 +15,7 @@
  */
 package ChannelBot.database;
 
-import ChannelBot.ChannelBot;
-
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -26,8 +25,14 @@ import java.util.List;
 import java.util.Map;
 
 public class UserListProvider {
+    private Connection connection;
+
+    public UserListProvider(Connection connection) {
+        this.connection = connection;
+    }
+
     public List<String> getUserListNames() throws SQLException {
-        try (PreparedStatement statement = ChannelBot.getInstance().getDatabaseConnection().prepareStatement(
+        try (PreparedStatement statement = connection.prepareStatement(
                 "SELECT DISTINCT listname FROM userlist ORDER BY listname")) {
             statement.execute();
             ResultSet resultSet = statement.getResultSet();
@@ -51,7 +56,7 @@ public class UserListProvider {
     }
 
     public List<String> getUserListByName(String listName) throws SQLException {
-        try (PreparedStatement statement = ChannelBot.getInstance().getDatabaseConnection().prepareStatement(
+        try (PreparedStatement statement = connection.prepareStatement(
                 "SELECT username FROM userlist WHERE listname = ?")) {
             statement.setString(1, listName);
             statement.execute();
@@ -66,7 +71,7 @@ public class UserListProvider {
     }
 
     public void addUserToList(String listName,String username) throws SQLException {
-        try (PreparedStatement statement = ChannelBot.getInstance().getDatabaseConnection().prepareStatement(
+        try (PreparedStatement statement = connection.prepareStatement(
                 "INSERT OR REPLACE INTO userlist (listname,username) VALUES (?,?)")) {
             statement.setString(1, listName);
             statement.setString(2, username);
@@ -75,7 +80,7 @@ public class UserListProvider {
     }
 
     public void removeUserFromList(String listName, String username) throws SQLException {
-        try (PreparedStatement statement = ChannelBot.getInstance().getDatabaseConnection().prepareStatement(
+        try (PreparedStatement statement = connection.prepareStatement(
                 "DELETE FROM userlist WHERE listname = ? AND username = ?")) {
             statement.setString(1, listName);
             statement.setString(2, username);
